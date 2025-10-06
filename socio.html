@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C&B Cerrajería Balbín - Socio</title>
+  <style>
+    body { margin:0; font-family: Roboto, sans-serif; background:#000; color:#fff; padding:20px; }
+    header { text-align:center; margin-bottom:30px; }
+    header h1 { color:#d4af37; }
+    .card { background:#111; border:1px solid #d4af37; border-radius:12px; padding:20px; max-width:400px; margin:0 auto 20px; }
+    .card h2 { color:#d4af37; margin-top:0; }
+    .service-item { background:#1a1a1a; padding:10px; border-radius:8px; margin-bottom:10px; }
+    .estado-activo { color:#4caf50; font-weight:bold; }
+    .estado-suspendido { color:#f44336; font-weight:bold; }
+    footer { text-align:center; margin-top:40px; color:#aaa; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>C&B Cerrajería Balbín</h1>
+    <p>Membresía Digital</p>
+  </header>
+
+  <div class="card" id="datos-socio">
+    <h2>Datos del Socio</h2>
+    <p><strong>Nombre:</strong> ...</p>
+    <p><strong>N° Socio:</strong> ...</p>
+    <p><strong>Plan:</strong> ...</p>
+    <p><strong>Estado de Pago:</strong> ...</p>
+  </div>
+
+  <div class="card" id="servicios">
+    <h2>Últimos 3 Servicios</h2>
+    <p>Cargando...</p>
+  </div>
+
+  <footer>
+    <p>Av. Balbín 1377 - Tandil</p>
+    <p>Tel: 2494240906</p>
+  </footer>
+
+  <script>
+    // ⚡ Pega acá las URLs de Google Sheets publicadas como CSV
+    const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+    const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
+
+    async function fetchCSV(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      const rows = text.trim().split("\\n").map(r => r.split(","));
+      const headers = rows.shift();
+      return rows.map(r => Object.fromEntries(r.map((v,i)=>[headers[i], v])));
+    }
+
+    async function main() {
+      const params = new URLSearchParams(window.location.search);
+      const socioId = params.get("id");
+
+      const socios = await fetchCSV(SOCIOS_URL);
+      const servicios = await fetchCSV(SERVICIOS_URL);
+
+      const socio = socios.find(s => s["N° Socio"] === socioId);
+      if (!socio) return alert("Socio no encontrado");
+
+      // Render socio
+      const datosDiv = document.getElementById("datos-socio");
+      datosDiv.innerHTML = `
+        <h2>Datos del Socio</h2>
+        <p><strong>Nombre:</strong> ${socio["Nombre y Apellido"]}</p>
+        <p><strong>N° Socio:</strong> ${socio["N° Socio"]}</p>
+        <p><strong>Plan:</strong> ${socio["Plan"]}</p>
+        <p><strong>Estado de Pago:</strong> <span class="${socio["Estado de Pago"]==="Activo"?"estado-activo":"estado-suspendido"}">${socio["Estado de Pago"]}</span></p>
+      `;
+
+      // Render servicios
+      const serviciosSocio = servicios.filter(s => s["N° Socio"] === socioId).slice(-3).reverse();
+      const servDiv = document.getElementById("servicios");
+      if (serviciosSocio.length === 0) {
+        servDiv.innerHTML = "<h2>Últimos 3 Servicios</h2><p>No hay registros.</p>";
+      } else {
+        servDiv.innerHTML = "<h2>Últimos 3 Servicios</h2>" + serviciosSocio.map(s=>`
+          <div class='service-item'>
+            <p><strong>Fecha:</strong> ${s["Fecha"]}</p>
+            <p><strong>Servicio:</strong> ${s["Servicio"]}</p>
+            <p><strong>Dirección:</strong> ${s["Dirección"]}</p>
+          </div>`).join("");
+      }
+    }
+    main();
+  </script>
+</body>
+</html>

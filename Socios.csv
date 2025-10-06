@@ -1,0 +1,4 @@
+N° Socio,Nombre y Apellido,DNI,Teléfono,Email,Dirección,Plan,Estado de Pago,Fecha de Alta,Fecha de Vencimiento,Observaciones
+1,cristian kloster,12345678,2494000001,ej1@mail.com,Av. Siempreviva 123,Básico,Activo,01/10/2025,31/10/2025,Cliente puntual
+2,axel kloster,23456789,2494000002,ej2@mail.com,Calle Falsa 456,Medio,Suspendido,05/10/2025,04/11/2025,Revisar pago
+3,ignacio kloster,34567890,2494000003,ej3@mail.com,Balbín 1377,Premium,Activo,07/10/2025,06/11/2025,Prefiere contacto WhatsApp
