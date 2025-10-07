@@ -1,73 +1,58 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C&B Cerrajería Balbín - Socio</title>
   <style>
     body {
-      background-color: #111;
-      color: #f5c542;
-      font-family: "Segoe UI", sans-serif;
+      background-color: #0a0a0a;
+      color: #d4af37;
+      font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
       padding: 0;
     }
-
-    header {
-      background: #000;
-      padding: 20px;
-      font-size: 1.6em;
-      font-weight: bold;
-      letter-spacing: 1px;
-      color: #f5c542;
+    h1 {
+      margin-top: 40px;
+      color: #d4af37;
     }
-
     h2 {
-      margin-top: 10px;
-      font-size: 1.2em;
-      color: #fff;
+      margin: 10px 0;
+      color: #d4af37;
     }
-
     .card {
-      border: 2px solid #f5c542;
-      border-radius: 12px;
-      padding: 15px;
-      margin: 15px auto;
-      max-width: 350px;
+      background-color: #1a1a1a;
+      border: 2px solid #d4af37;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 20px;
       text-align: left;
-      background: rgba(255, 255, 255, 0.05);
     }
-
-    .card h3 {
-      text-align: center;
-      color: #f5c542;
-    }
-
     footer {
-      margin-top: 25px;
-      padding: 15px;
-      font-size: 0.9em;
+      margin-top: 40px;
       color: #ccc;
+      font-size: 14px;
     }
   </style>
 </head>
-
 <body>
-  <header>C&B Cerrajería Balbín</header>
+  <h1>C&B Cerrajería Balbín</h1>
   <h2>Membresía Digital</h2>
 
   <div class="card">
     <h3>Datos del Socio</h3>
-    <p><b>Nombre:</b> <span id="nombre">...</span></p>
-    <p><b>N° Socio:</b> <span id="numero">...</span></p>
-    <p><b>Plan:</b> <span id="plan">...</span></p>
-    <p><b>Estado de Pago:</b> <span id="estado">...</span></p>
+    <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
+    <p><strong>N° Socio:</strong> <span id="numero">...</span></p>
+    <p><strong>Plan:</strong> <span id="plan">...</span></p>
+    <p><strong>Estado de Pago:</strong> <span id="estado">...</span></p>
   </div>
 
   <div class="card">
     <h3>Últimos 3 Servicios</h3>
-    <ul id="servicios">Cargando...</ul>
+    <div id="servicios">Cargando...</div>
   </div>
 
   <footer>
@@ -76,29 +61,52 @@
   </footer>
 
   <script>
-    // Enlaces a las hojas de Google Sheets publicadas como CSV
+    // URLs publicadas de tus hojas de Google
     const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
     const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
 
-    // Función para leer CSV en UTF-8
     async function fetchCSV(url) {
       const res = await fetch(url);
-      const text = new TextDecoder("utf-8").decode(await res.arrayBuffer());
-      const rows = text.trim().split(/\r?\n/).map(r => r.split(/,(?=(?:(?:[^"]"){2})[^"]*$)/));
+      const text = await res.text();
+      const rows = text.trim().split("\n").map(r => r.split(","));
       const headers = rows.shift();
-      return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i].trim(), v.trim()])));
+      return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i]?.trim(), v.trim()])));
     }
 
     async function main() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
-      if (!id) return alert("Falta el parámetro ?id=");
+      if (!id) return alert("No se indicó número de socio");
 
       const socios = await fetchCSV(SOCIOS_URL);
-      const socio = socios.find(s => s["N° Socio"] == id || s["NumeroSocio"] == id);
+      const socio = socios.find(s => s["N° Socio"] === id);
+      console.log("Datos socios:", socios);
+      console.log("Socio encontrado:", socio);
 
-      if (!socio) {
-        document.getElementById("nombre").textContent﻿
+      if (socio) {
+        document.getElementById("nombre").textContent = socio["Nombre"] || "";
+        document.getElementById("numero").textContent = socio["N° Socio"] || "";
+        document.getElementById("plan").textContent = socio["Plan"] || "";
+        document.getElementById("estado").textContent = socio["Estado de Pago"] || "";
+      } else {
+        document.getElementById("nombre").textContent = "No encontrado";
+        document.getElementById("servicios").textContent = "";
+        return;
+      }
 
+      const servicios = await fetchCSV(SERVICIOS_URL);
+      console.log("Servicios cargados:", servicios);
+
+      const delSocio = servicios.filter(s => s["N° Socio"] === id);
+      const ultimos = delSocio.slice(-3).reverse();
+      document.getElementById("servicios").innerHTML = ultimos.length
+        ? ultimos.map(s => <p>${s["Marca temporal"]} - ${s["Servicio [Apertura]"] || ""} ${s["Servicio [Reparacion]"] || ""} ${s["Servicio [Lubricacion preventiva]"] || ""} ${s["Servicio [Cambio de cerradura]"] || ""}</p>).join("")
+        : "Sin registros recientes.";
+    }
+
+    main();
+  </script>
+</body>
+</html>
     
  
