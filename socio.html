@@ -1,38 +1,73 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>C&B Cerrajería Balbín - Socio</title>
   <style>
-    body { margin:0; font-family: Roboto, sans-serif; background:#000; color:#fff; padding:20px; }
-    header { text-align:center; margin-bottom:30px; }
-    header h1 { color:#d4af37; }
-    .card { background:#111; border:1px solid #d4af37; border-radius:12px; padding:20px; max-width:400px; margin:0 auto 20px; }
-    .card h2 { color:#d4af37; margin-top:0; }
-    .service-item { background:#1a1a1a; padding:10px; border-radius:8px; margin-bottom:10px; }
-    .estado-activo { color:#4caf50; font-weight:bold; }
-    .estado-suspendido { color:#f44336; font-weight:bold; }
-    footer { text-align:center; margin-top:40px; color:#aaa; }
+    body {
+      background-color: #111;
+      color: #f5c542;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #000;
+      padding: 20px;
+      font-size: 1.6em;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #f5c542;
+    }
+
+    h2 {
+      margin-top: 10px;
+      font-size: 1.2em;
+      color: #fff;
+    }
+
+    .card {
+      border: 2px solid #f5c542;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 15px auto;
+      max-width: 350px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .card h3 {
+      text-align: center;
+      color: #f5c542;
+    }
+
+    footer {
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 0.9em;
+      color: #ccc;
+    }
   </style>
 </head>
-<body>
-  <header>
-    <h1>C&B Cerrajería Balbín</h1>
-    <p>Membresía Digital</p>
-  </header>
 
-  <div class="card" id="datos-socio">
-    <h2>Datos del Socio</h2>
-    <p><strong>Nombre:</strong> ...</p>
-    <p><strong>N° Socio:</strong> ...</p>
-    <p><strong>Plan:</strong> ...</p>
-    <p><strong>Estado de Pago:</strong> ...</p>
+<body>
+  <header>C&B Cerrajería Balbín</header>
+  <h2>Membresía Digital</h2>
+
+  <div class="card">
+    <h3>Datos del Socio</h3>
+    <p><b>Nombre:</b> <span id="nombre">...</span></p>
+    <p><b>N° Socio:</b> <span id="numero">...</span></p>
+    <p><b>Plan:</b> <span id="plan">...</span></p>
+    <p><b>Estado de Pago:</b> <span id="estado">...</span></p>
   </div>
 
-  <div class="card" id="servicios">
-    <h2>Últimos 3 Servicios</h2>
-    <p>Cargando...</p>
+  <div class="card">
+    <h3>Últimos 3 Servicios</h3>
+    <ul id="servicios">Cargando...</ul>
   </div>
 
   <footer>
@@ -40,55 +75,30 @@
     <p>Tel: 2494240906</p>
   </footer>
 
-  <!-- 🔗 URLs de Google Sheets publicadas como CSV -->
-<script>
-const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
-</script>
+  <script>
+    // Enlaces a las hojas de Google Sheets publicadas como CSV
+    const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+    const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
 
+    // Función para leer CSV en UTF-8
     async function fetchCSV(url) {
       const res = await fetch(url);
-      const text = await res.text();
-      const rows = text.trim().split("\\n").map(r => r.split(","));
+      const text = new TextDecoder("utf-8").decode(await res.arrayBuffer());
+      const rows = text.trim().split(/\r?\n/).map(r => r.split(/,(?=(?:(?:[^"]"){2})[^"]*$)/));
       const headers = rows.shift();
-      return rows.map(r => Object.fromEntries(r.map((v,i)=>[headers[i], v])));
+      return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i].trim(), v.trim()])));
     }
 
     async function main() {
       const params = new URLSearchParams(window.location.search);
-      const socioId = params.get("id");
+      const id = params.get("id");
+      if (!id) return alert("Falta el parámetro ?id=");
 
       const socios = await fetchCSV(SOCIOS_URL);
-      const servicios = await fetchCSV(SERVICIOS_URL);
+      const socio = socios.find(s => s["N° Socio"] == id || s["NumeroSocio"] == id);
 
-      const socio = socios.find(s => s["N° Socio"] === socioId);
-      if (!socio) return alert("Socio no encontrado");
+      if (!socio) {
+        document.getElementById("nombre").textContent﻿
 
-      // Render socio
-      const datosDiv = document.getElementById("datos-socio");
-      datosDiv.innerHTML = `
-        <h2>Datos del Socio</h2>
-        <p><strong>Nombre:</strong> ${socio["Nombre y Apellido"]}</p>
-        <p><strong>N° Socio:</strong> ${socio["N° Socio"]}</p>
-        <p><strong>Plan:</strong> ${socio["Plan"]}</p>
-        <p><strong>Estado de Pago:</strong> <span class="${socio["Estado de Pago"]==="Activo"?"estado-activo":"estado-suspendido"}">${socio["Estado de Pago"]}</span></p>
-      `;
-
-      // Render servicios
-      const serviciosSocio = servicios.filter(s => s["N° Socio"] === socioId).slice(-3).reverse();
-      const servDiv = document.getElementById("servicios");
-      if (serviciosSocio.length === 0) {
-        servDiv.innerHTML = "<h2>Últimos 3 Servicios</h2><p>No hay registros.</p>";
-      } else {
-        servDiv.innerHTML = "<h2>Últimos 3 Servicios</h2>" + serviciosSocio.map(s=>`
-          <div class='service-item'>
-            <p><strong>Fecha:</strong> ${s["Fecha"]}</p>
-            <p><strong>Servicio:</strong> ${s["Servicio"]}</p>
-            <p><strong>Dirección:</strong> ${s["Dirección"]}</p>
-          </div>`).join("");
-      }
-    }
-    main();
-  </script>
-</body>
-</html>
+    
+ 
