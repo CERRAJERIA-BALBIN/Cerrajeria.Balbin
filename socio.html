@@ -40,10 +40,11 @@
     <p>Tel: 2494240906</p>
   </footer>
 
-  <script>
-    // ⚡ Pega acá las URLs de Google Sheets publicadas como CSV
-    const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-    const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
+  <!-- 🔗 URLs de Google Sheets publicadas como CSV -->
+<script>
+const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
+</script>
 
     async function fetchCSV(url) {
       const res = await fetch(url);
