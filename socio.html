@@ -1,112 +1,131 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C&B Cerrajería Balbín - Socio</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C&B Cerrajería Balbín - Socio</title>
+<style>
     body {
-      background-color: #0a0a0a;
-      color: #d4af37;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
+        background: radial-gradient(circle at top, #1a1a1a, #000);
+        color: #f4c542;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
     }
     h1 {
-      margin-top: 40px;
-      color: #d4af37;
+        color: #f4c542;
+        margin-bottom: 5px;
     }
     h2 {
-      margin: 10px 0;
-      color: #d4af37;
+        color: #e0e0e0;
+        margin-top: 0;
+        font-size: 18px;
     }
     .card {
-      background-color: #1a1a1a;
-      border: 2px solid #d4af37;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 500px;
-      margin: 20px auto;
-      padding: 20px;
-      text-align: left;
+        border: 2px solid #f4c542;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 20px auto;
+        width: 320px;
+        background: rgba(255,255,255,0.05);
+        box-shadow: 0 0 10px rgba(244,197,66,0.2);
     }
-    footer {
-      margin-top: 40px;
-      color: #ccc;
-      font-size: 14px;
+    .footer {
+        margin-top: 30px;
+        color: #ccc;
+        font-size: 14px;
     }
-  </style>
+</style>
 </head>
 <body>
-  <h1>C&B Cerrajería Balbín</h1>
-  <h2>Membresía Digital</h2>
 
-  <div class="card">
+<h1>C&B Cerrajería Balbín</h1>
+<h2>Membresía Digital</h2>
+
+<div class="card">
     <h3>Datos del Socio</h3>
-    <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
-    <p><strong>N° Socio:</strong> <span id="numero">...</span></p>
-    <p><strong>Plan:</strong> <span id="plan">...</span></p>
-    <p><strong>Estado de Pago:</strong> <span id="estado">...</span></p>
-  </div>
+    <p><b>Nombre:</b> <span id="nombre">...</span></p>
+    <p><b>N° Socio:</b> <span id="nsocio">...</span></p>
+    <p><b>Plan:</b> <span id="plan">...</span></p>
+    <p><b>Estado de Pago:</b> <span id="estado">...</span></p>
+</div>
 
-  <div class="card">
+<div class="card">
     <h3>Últimos 3 Servicios</h3>
     <div id="servicios">Cargando...</div>
-  </div>
+</div>
 
-  <footer>
-    <p>Av. Balbín 1377 - Tandil</p>
-    <p>Tel: 2494240906</p>
-  </footer>
+<div class="footer">
+    Av. Balbín 1377 - Tandil<br>
+    Tel: 2494240906
+</div>
 
-  <script>
-    // URLs publicadas de tus hojas de Google
-    const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-    const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+<script>
+const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
 
-    async function fetchCSV(url) {
-      const res = await fetch(url);
-      const text = await res.text();
-      const rows = text.trim().split("\n").map(r => r.split(","));
-      const headers = rows.shift();
-      return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i]?.trim(), v.trim()])));
+async function fetchCSV(url) {
+    const res = await fetch(url);
+    const text = await res.text();
+
+    // Si el CSV devuelve HTML, mostrar error
+    if (text.startsWith("<")) {
+        throw new Error("El enlace no devuelve CSV. Revisá que esté publicado correctamente como CSV público.");
     }
 
-    async function main() {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("id");
-      if (!id) return alert("No se indicó número de socio");
+    const rows = text.trim().split("\n").map(r => r.split(","));
+    const headers = rows.shift().map(h => h.trim());
+    return rows.map(r => {
+        let obj = {};
+        headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+        return obj;
+    });
+}
 
-      const socios = await fetchCSV(SOCIOS_URL);
-      const socio = socios.find(s => s["N° Socio"] === id);
-      console.log("Datos socios:", socios);
-      console.log("Socio encontrado:", socio);
+async function main() {
+    const params = new URLSearchParams(window.location.search);
+    const socioId = params.get("id");
 
-      if (socio) {
-        document.getElementById("nombre").textContent = socio["Nombre"] || "";
-        document.getElementById("numero").textContent = socio["N° Socio"] || "";
-        document.getElementById("plan").textContent = socio["Plan"] || "";
-        document.getElementById("estado").textContent = socio["Estado de Pago"] || "";
-      } else {
-        document.getElementById("nombre").textContent = "No encontrado";
-        document.getElementById("servicios").textContent = "";
+    if (!socioId) {
+        document.getElementById("servicios").textContent = "Falta el ID del socio en la URL (?id=1)";
         return;
-      }
-
-      const servicios = await fetchCSV(SERVICIOS_URL);
-      console.log("Servicios cargados:", servicios);
-
-      const delSocio = servicios.filter(s => s["N° Socio"] === id);
-      const ultimos = delSocio.slice(-3).reverse();
-      document.getElementById("servicios").innerHTML = ultimos.length
-        ? ultimos.map(s => <p>${s["Marca temporal"]} - ${s["Servicio [Apertura]"] || ""} ${s["Servicio [Reparacion]"] || ""} ${s["Servicio [Lubricacion preventiva]"] || ""} ${s["Servicio [Cambio de cerradura]"] || ""}</p>).join("")
-        : "Sin registros recientes.";
     }
 
-    main();
-  </script>
+    try {
+        // --- Cargar socios ---
+        const socios = await fetchCSV(SOCIOS_URL);
+        const socio = socios.find(s => s["N° Socio"] === socioId);
+
+        if (socio) {
+            document.getElementById("nombre").textContent = socio["Nombre"] || "Sin datos";
+            document.getElementById("nsocio").textContent = socio["N° Socio"] || socioId;
+            document.getElementById("plan").textContent = socio["Plan"] || "Sin datos";
+            document.getElementById("estado").textContent = socio["Estado de Pago"] || "Sin datos";
+        } else {
+            document.getElementById("nombre").textContent = "No encontrado";
+        }
+
+        // --- Cargar servicios ---
+        const servicios = await fetchCSV(SERVICIOS_URL);
+        const ultimos = servicios.filter(s => s["N° Socio"] === socioId).slice(-3);
+
+        if (ultimos.length > 0) {
+            document.getElementById("servicios").innerHTML = ultimos.map(s =>
+                <p>🛠️ ${Object.entries(s).map(([k, v]) => `${k}: ${v}).join(" | ")}</p>`
+            ).join("");
+        } else {
+            document.getElementById("servicios").textContent = "No hay servicios registrados.";
+        }
+
+    } catch (error) {
+        document.getElementById("servicios").textContent = "Error: " + error.message;
+        console.error(error);
+    }
+}
+
+main();
+</script>
+
 </body>
 </html>
-    
- 
