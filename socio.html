@@ -1,131 +1,126 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C&B Cerrajería Balbín - Socio</title>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C&B Cerrajería Balbín - Socio</title>
+  <style>
     body {
-        background: radial-gradient(circle at top, #1a1a1a, #000);
-        color: #f4c542;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin: 0;
-        padding: 20px;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0b0c10, #1f2833);
+      color: #f1f1f1;
+      text-align: center;
+      padding: 40px;
     }
     h1 {
-        color: #f4c542;
-        margin-bottom: 5px;
+      color: #e0b84e;
+      font-size: 2em;
     }
     h2 {
-        color: #e0e0e0;
-        margin-top: 0;
-        font-size: 18px;
+      margin-top: 0;
+      color: #e0b84e;
     }
     .card {
-        border: 2px solid #f4c542;
-        border-radius: 12px;
-        padding: 15px;
-        margin: 20px auto;
-        width: 320px;
-        background: rgba(255,255,255,0.05);
-        box-shadow: 0 0 10px rgba(244,197,66,0.2);
+      border: 2px solid #e0b84e;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px auto;
+      width: 320px;
+      background: rgba(255, 255, 255, 0.05);
+      text-align: left;
     }
-    .footer {
-        margin-top: 30px;
-        color: #ccc;
-        font-size: 14px;
+    footer {
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #aaa;
     }
-</style>
+  </style>
 </head>
 <body>
+  <h1>C&B Cerrajería Balbín</h1>
+  <p>Membresía Digital</p>
 
-<h1>C&B Cerrajería Balbín</h1>
-<h2>Membresía Digital</h2>
+  <div class="card">
+    <h2>Datos del Socio</h2>
+    <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
+    <p><strong>N° Socio:</strong> <span id="numero">...</span></p>
+    <p><strong>Plan:</strong> <span id="plan">...</span></p>
+    <p><strong>Estado de Pago:</strong> <span id="estado">...</span></p>
+  </div>
 
-<div class="card">
-    <h3>Datos del Socio</h3>
-    <p><b>Nombre:</b> <span id="nombre">...</span></p>
-    <p><b>N° Socio:</b> <span id="nsocio">...</span></p>
-    <p><b>Plan:</b> <span id="plan">...</span></p>
-    <p><b>Estado de Pago:</b> <span id="estado">...</span></p>
-</div>
+  <div class="card">
+    <h2>Últimos 3 Servicios</h2>
+    <ul id="servicios">
+      <li>Cargando...</li>
+    </ul>
+  </div>
 
-<div class="card">
-    <h3>Últimos 3 Servicios</h3>
-    <div id="servicios">Cargando...</div>
-</div>
+  <footer>
+    <p>Av. Balbín 1377 - Tandil</p>
+    <p>Tel: 2494240906</p>
+  </footer>
 
-<div class="footer">
-    Av. Balbín 1377 - Tandil<br>
-    Tel: 2494240906
-</div>
+  <script>
+    // 🟡 URLs de tus hojas publicadas en CSV
+    const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+    const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
 
-<script>
-const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
-
-async function fetchCSV(url) {
-    const res = await fetch(url);
-    const text = await res.text();
-
-    // Si el CSV devuelve HTML, mostrar error
-    if (text.startsWith("<")) {
-        throw new Error("El enlace no devuelve CSV. Revisá que esté publicado correctamente como CSV público.");
+    // 🧠 Función para leer CSV
+    async function fetchCSV(url) {
+      try {
+        const res = await fetch(url);
+        const buffer = await res.arrayBuffer();
+        const decoder = new TextDecoder("utf-8");
+        const text = decoder.decode(buffer);
+        const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
+        const headers = rows.shift();
+        console.log("Encabezados:", headers);
+        return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i]?.trim(), v.trim()])));
+      } catch (err) {
+        console.error("Error cargando CSV:", err);
+        return [];
+      }
     }
 
-    const rows = text.trim().split("\n").map(r => r.split(","));
-    const headers = rows.shift().map(h => h.trim());
-    return rows.map(r => {
-        let obj = {};
-        headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
-        return obj;
-    });
-}
+    async function main() {
+      const params = new URLSearchParams(window.location.search);
+      const socioId = params.get("id");
+      console.log("Buscando socio ID:", socioId);
 
-async function main() {
-    const params = new URLSearchParams(window.location.search);
-    const socioId = params.get("id");
+      const socios = await fetchCSV(SOCIOS_URL);
+      const servicios = await fetchCSV(SERVICIOS_URL);
 
-    if (!socioId) {
-        document.getElementById("servicios").textContent = "Falta el ID del socio en la URL (?id=1)";
-        return;
+      console.log("Datos Socios:", socios);
+      console.log("Datos Servicios:", servicios);
+
+      const socio = socios.find(s => s["N° Socio"]?.trim() === socioId);
+
+      if (socio) {
+        document.getElementById("nombre").textContent = socio["Nombre"] || "";
+        document.getElementById("numero").textContent = socio["N° Socio"] || "";
+        document.getElementById("plan").textContent = socio["Plan"] || "";
+        document.getElementById("estado").textContent = socio["Estado de Pago"] || "";
+      } else {
+        document.getElementById("nombre").textContent = "No encontrado";
+      }
+
+      // Filtrar servicios por N° Socio
+      const servSocio = servicios.filter(s => s["N° Socio"]?.trim() === socioId);
+      const lista = document.getElementById("servicios");
+      lista.innerHTML = "";
+
+      if (servSocio.length > 0) {
+        servSocio.slice(-3).forEach(s => {
+          const li = document.createElement("li");
+          li.textContent = ${s["Servicio [Apertura]"] || ""} ${s["Servicio [Reparación]"] || ""} ${s["Servicio [Lubricación preventiva]"] || ""} ${s["Servicio [Cambio de cerradura]"] || ""}.trim();
+          lista.appendChild(li);
+        });
+      } else {
+        lista.innerHTML = "<li>Sin servicios registrados</li>";
+      }
     }
 
-    try {
-        // --- Cargar socios ---
-        const socios = await fetchCSV(SOCIOS_URL);
-        const socio = socios.find(s => s["N° Socio"] === socioId);
-
-        if (socio) {
-            document.getElementById("nombre").textContent = socio["Nombre"] || "Sin datos";
-            document.getElementById("nsocio").textContent = socio["N° Socio"] || socioId;
-            document.getElementById("plan").textContent = socio["Plan"] || "Sin datos";
-            document.getElementById("estado").textContent = socio["Estado de Pago"] || "Sin datos";
-        } else {
-            document.getElementById("nombre").textContent = "No encontrado";
-        }
-
-        // --- Cargar servicios ---
-        const servicios = await fetchCSV(SERVICIOS_URL);
-        const ultimos = servicios.filter(s => s["N° Socio"] === socioId).slice(-3);
-
-        if (ultimos.length > 0) {
-            document.getElementById("servicios").innerHTML = ultimos.map(s =>
-                <p>🛠️ ${Object.entries(s).map(([k, v]) => `${k}: ${v}).join(" | ")}</p>`
-            ).join("");
-        } else {
-            document.getElementById("servicios").textContent = "No hay servicios registrados.";
-        }
-
-    } catch (error) {
-        document.getElementById("servicios").textContent = "Error: " + error.message;
-        console.error(error);
-    }
-}
-
-main();
-</script>
-
+    main();
+  </script>
 </body>
 </html>
