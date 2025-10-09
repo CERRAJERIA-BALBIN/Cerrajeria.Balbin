@@ -16,10 +16,6 @@
       color: #e0b84e;
       font-size: 2em;
     }
-    h2 {
-      margin-top: 0;
-      color: #e0b84e;
-    }
     .card {
       border: 2px solid #e0b84e;
       border-radius: 15px;
@@ -60,40 +56,54 @@
     <p>Tel: 2494240906</p>
   </footer>
 
-  <script>
-    // 🔗 URLs de las hojas publicadas como CSV
-    const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-    const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+<script>
+  // Enlaces a tus hojas CSV publicadas
+  var SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+  var SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+  var PROXY = "https://api.allorigins.win/raw?url=";
 
-    // 🚀 Proxy gratuito para evitar bloqueos CORS
-    const PROXY = "https://api.allorigins.win/raw?url=";
-
-    async function fetchCSV(url) {
-      try {
-        const res = await fetch(PROXY + encodeURIComponent(url));
-        const text = await res.text();
-        console.log("Texto obtenido:", text.slice(0, 200)); // Muestra los primeros 200 caracteres
-        const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
-        const headers = rows.shift();
-        return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i]?.trim(), v.trim()])));
-      } catch (err) {
+  function fetchCSV(url, callback) {
+    fetch(PROXY + encodeURIComponent(url))
+      .then(function(res) { return res.text(); })
+      .then(function(text) {
+        var rows = text.trim().split(/\r?\n/);
+        var headers = rows.shift().split(",");
+        var data = rows.map(function(row) {
+          var values = row.split(",");
+          var obj = {};
+          for (var i = 0; i < headers.length; i++) {
+            obj[headers[i].trim()] = (values[i] || "").trim();
+          }
+          return obj;
+        });
+        console.log("Leído:", data.length, "filas de", url);
+        callback(data);
+      })
+      .catch(function(err) {
         console.error("Error cargando CSV:", err);
-        return [];
-      }
+        callback([]);
+      });
+  }
+
+  function main() {
+    var params = new URLSearchParams(window.location.search);
+    var socioId = params.get("id");
+    console.log("Buscando socio ID:", socioId);
+
+    if (!socioId) {
+      document.getElementById("servicios").innerHTML = "<li>Falta ID en la URL</li>";
+      return;
     }
 
-    async function main() {
-      const params = new URLSearchParams(window.location.search);
-      const socioId = params.get("id");
-      console.log("Buscando socio ID:", socioId);
+    fetchCSV(SOCIOS_URL, function(socios) {
+      var socio = null;
+      for (var i = 0; i < socios.length; i++) {
+        if (socios[i]["N° Socio"] === socioId) {
+          socio = socios[i];
+          break;
+        }
+      }
 
-      const socios = await fetchCSV(SOCIOS_URL);
-      const servicios = await fetchCSV(SERVICIOS_URL);
-
-      console.log("Socios:", socios);
-      console.log("Servicios:", servicios);
-
-      const socio = socios.find(s => s["N° Socio"]?.trim() === socioId);
       if (socio) {
         document.getElementById("nombre").textContent = socio["Nombre"] || "";
         document.getElementById("numero").textContent = socio["N° Socio"] || "";
@@ -103,28 +113,40 @@
         document.getElementById("nombre").textContent = "No encontrado";
       }
 
-      const servSocio = servicios.filter(s => s["N° Socio"]?.trim() === socioId);
-      const lista = document.getElementById("servicios");
-      lista.innerHTML = "";
+      // Ahora cargamos los servicios
+      fetchCSV(SERVICIOS_URL, function(servicios) {
+        var lista = document.getElementById("servicios");
+        lista.innerHTML = "";
+        var encontrados = [];
+        for (var j = 0; j < servicios.length; j++) {
+          if (servicios[j]["N° Socio"] === socioId) {
+            encontrados.push(servicios[j]);
+          }
+        }
 
-      if (servSocio.length > 0) {
-        servSocio.slice(-3).forEach(s => {
-          const li = document.createElement("li");
-          li.textContent = [
-            s["Servicio [Apertura]"],
-            s["Servicio [Reparación]"],
-            s["Servicio [Lubricación preventiva]"],
-            s["Servicio [Cambio de cerradura]"],
-            s["Dirección"]
-          ].filter(Boolean).join(" | ");
-          lista.appendChild(li);
-        });
-      } else {
-        lista.innerHTML = "<li>Sin servicios registrados</li>";
-      }
-    }
+        if (encontrados.length > 0) {
+          var ultimos = encontrados.slice(-3);
+          for (var k = 0; k < ultimos.length; k++) {
+            var s = ultimos[k];
+            var texto = "";
+            var campos = ["Servicio [Apertura]", "Servicio [Reparación]", "Servicio [Lubricación preventiva]", "Servicio [Cambio de cerradura]", "Dirección"];
+            for (var c = 0; c < campos.length; c++) {
+              if (s[campos[c]] && s[campos[c]].length > 0) {
+                texto += (texto ? " | " : "") + s[campos[c]];
+              }
+            }
+            var li = document.createElement("li");
+            li.textContent = texto || "Servicio registrado";
+            lista.appendChild(li);
+          }
+        } else {
+          lista.innerHTML = "<li>Sin servicios registrados</li>";
+        }
+      });
+    });
+  }
 
-    main();
-  </script>
+  main();
+</script>
 </body>
 </html>
