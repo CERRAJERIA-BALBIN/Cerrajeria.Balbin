@@ -61,20 +61,20 @@
   </footer>
 
   <script>
-    // 🟡 URLs de tus hojas publicadas en CSV
+    // 🔗 URLs de las hojas publicadas como CSV
     const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
     const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
 
-    // 🧠 Función para leer CSV
+    // 🚀 Proxy gratuito para evitar bloqueos CORS
+    const PROXY = "https://api.allorigins.win/raw?url=";
+
     async function fetchCSV(url) {
       try {
-        const res = await fetch(url);
-        const buffer = await res.arrayBuffer();
-        const decoder = new TextDecoder("utf-8");
-        const text = decoder.decode(buffer);
+        const res = await fetch(PROXY + encodeURIComponent(url));
+        const text = await res.text();
+        console.log("Texto obtenido:", text.slice(0, 200)); // Muestra los primeros 200 caracteres
         const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
         const headers = rows.shift();
-        console.log("Encabezados:", headers);
         return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i]?.trim(), v.trim()])));
       } catch (err) {
         console.error("Error cargando CSV:", err);
@@ -90,11 +90,10 @@
       const socios = await fetchCSV(SOCIOS_URL);
       const servicios = await fetchCSV(SERVICIOS_URL);
 
-      console.log("Datos Socios:", socios);
-      console.log("Datos Servicios:", servicios);
+      console.log("Socios:", socios);
+      console.log("Servicios:", servicios);
 
       const socio = socios.find(s => s["N° Socio"]?.trim() === socioId);
-
       if (socio) {
         document.getElementById("nombre").textContent = socio["Nombre"] || "";
         document.getElementById("numero").textContent = socio["N° Socio"] || "";
@@ -104,7 +103,6 @@
         document.getElementById("nombre").textContent = "No encontrado";
       }
 
-      // Filtrar servicios por N° Socio
       const servSocio = servicios.filter(s => s["N° Socio"]?.trim() === socioId);
       const lista = document.getElementById("servicios");
       lista.innerHTML = "";
@@ -112,7 +110,13 @@
       if (servSocio.length > 0) {
         servSocio.slice(-3).forEach(s => {
           const li = document.createElement("li");
-          li.textContent = ${s["Servicio [Apertura]"] || ""} ${s["Servicio [Reparación]"] || ""} ${s["Servicio [Lubricación preventiva]"] || ""} ${s["Servicio [Cambio de cerradura]"] || ""}.trim();
+          li.textContent = [
+            s["Servicio [Apertura]"],
+            s["Servicio [Reparación]"],
+            s["Servicio [Lubricación preventiva]"],
+            s["Servicio [Cambio de cerradura]"],
+            s["Dirección"]
+          ].filter(Boolean).join(" | ");
           lista.appendChild(li);
         });
       } else {
