@@ -51,7 +51,7 @@
 </head>
 <body>
   <div class="card">
-    <img src="https://i.ibb.co/q5V5h7v/logo-cyb.png" class="logo" alt="Logo C&B">
+    <img src="https://i.ibb.co/HVYKYX9/logo-cyb.png" class="logo" alt="Logo C&B">
     <h1>C&B Cerrajería Balbín</h1>
     <h3>Carnet Digital de Socio</h3>
 
@@ -88,31 +88,39 @@ async function main() {
   const socioId = params.get("id");
   if (!socioId) return;
 
-  const socios = await fetchCSV(SOCIOS_URL);
-  const servicios = await fetchCSV(SERVICIOS_URL);
+  try {
+    const socios = await fetchCSV(SOCIOS_URL);
+    const servicios = await fetchCSV(SERVICIOS_URL);
 
-  const socio = socios.find(s => s["N° Socio"] === socioId);
-  if (!socio) return;
+    const socio = socios.find(s => s["N° Socio"] === socioId);
+    if (!socio) {
+      document.getElementById("servicios").textContent = "Socio no encontrado.";
+      return;
+    }
 
-  document.getElementById("nombre").textContent = socio["Nombre"];
-  document.getElementById("plan").textContent = socio["Plan"];
-  document.getElementById("estado").textContent = socio["Estado de Pago"];
+    document.getElementById("nombre").textContent = socio["Nombre"] || "Sin nombre";
+    document.getElementById("plan").textContent = socio["Plan"] || "No especificado";
+    document.getElementById("estado").textContent = socio["Estado de Pago"] || "Sin datos";
 
-  // Mostrar los últimos servicios con nombre
-  const servSocio = servicios.filter(s => s["N° Socio"] === socioId);
-  const serviciosDiv = document.getElementById("servicios");
+    const servSocio = servicios.filter(s => s["N° Socio"] === socioId);
+    const serviciosDiv = document.getElementById("servicios");
 
-  if (servSocio.length) {
-    serviciosDiv.innerHTML = servSocio.map(s =>
-      <p><strong>${s["Servicio"] || "Servicio"}:</strong> ${s["Observaciones"] || "Sin detalles"}</p>
-    ).join("");
-  } else {
-    serviciosDiv.innerHTML = "<p>No hay servicios registrados.</p>";
+    if (servSocio.length) {
+      serviciosDiv.innerHTML = servSocio.map(s =>
+        <p><strong>${s["Servicio [Apertura]"] || "Servicio"}:</strong> ${s["Observaciones"] || "Sin detalles"}</p>
+      ).join("");
+    } else {
+      serviciosDiv.innerHTML = "<p>No hay servicios registrados.</p>";
+    }
+
+    // Generar QR dinámico
+    const qrUrl = https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.href)};
+    document.getElementById("qr").src = qrUrl;
+
+  } catch (e) {
+    document.getElementById("servicios").textContent = "Error al cargar datos.";
+    console.error("Error:", e);
   }
-
-  // Generar QR
-  const qrUrl = https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.href)};
-  document.getElementById("qr").src = qrUrl;
 }
 
 main();
