@@ -1,116 +1,118 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carnet Digital - C&B Cerrajería Balbín</title>
 <style>
   body {
-    background-color: #0d0d0d;
-    color: #f2c94c;
-    font-family: "Segoe UI", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #111, #000);
+    color: #f4c542;
+    text-align: center;
+    margin: 0;
+    padding: 0;
   }
   .card {
-    border: 2px solid #f2c94c;
-    border-radius: 20px;
-    padding: 20px 30px;
-    background: #141414;
-    box-shadow: 0 0 15px rgba(242, 201, 76, 0.3);
-    text-align: center;
-    max-width: 350px;
-  }
-  h1 { margin-bottom: 0; }
-  h2 { margin-top: 5px; color: #ccc; font-size: 16px; }
-  .section {
-    margin-top: 20px;
-    border-top: 1px solid #f2c94c;
-    padding-top: 10px;
-    text-align: left;
-  }
-  #qr {
-    margin-top: 15px;
+    width: 320px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 2px solid #f4c542;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(244,197,66,0.2);
+    background: rgba(30,30,30,0.9);
   }
   img.logo {
     width: 100px;
     margin-bottom: 10px;
   }
+  h1 {
+    margin: 0;
+    color: #f4c542;
+  }
+  h3 {
+    border-bottom: 1px solid #f4c542;
+    padding-bottom: 5px;
+  }
+  #servicios p {
+    margin: 4px 0;
+    color: #ddd;
+  }
+  footer {
+    font-size: 13px;
+    margin-top: 10px;
+    color: #aaa;
+  }
+  img.qr {
+    width: 100px;
+    margin-top: 10px;
+  }
 </style>
 </head>
 <body>
   <div class="card">
-    <img src="https://i.ibb.co/xHV3cyx/candado-infinito-dorado.png" alt="Logo C&B" class="logo">
+    <img src="https://i.ibb.co/q5V5h7v/logo-cyb.png" class="logo" alt="Logo C&B">
     <h1>C&B Cerrajería Balbín</h1>
-    <h2>Carnet Digital de Socio</h2>
+    <h3>Carnet Digital de Socio</h3>
 
-    <div class="section">
-      <b>Datos del Socio</b><br><br>
-      <p>Nombre: <span id="nombre">...</span></p>
-      <p>Plan: <span id="plan">...</span></p>
-      <p>Estado: <span id="estado">...</span></p>
+    <div id="datos">
+      <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
+      <p><strong>Plan:</strong> <span id="plan">...</span></p>
+      <p><strong>Estado:</strong> <span id="estado">...</span></p>
     </div>
 
-    <div class="section">
-      <b>Últimos Servicios Utilizados</b>
-      <ul id="servicios"></ul>
-    </div>
+    <h3>Últimos Servicios Utilizados</h3>
+    <div id="servicios">Cargando...</div>
 
-    <div id="qr"></div>
-
-    <p style="margin-top:15px; font-size:12px;">
-      C&B Cerrajería Balbín - Av. Balbín 1377 - Tandil<br>
+    <img id="qr" class="qr" alt="QR del socio">
+    <footer>
+      C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil<br>
       Contacto: 2494 240906
-    </p>
+    </footer>
   </div>
 
 <script>
-const sociosCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-const serviciosCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
 
 async function fetchCSV(url) {
   const res = await fetch(url);
   const text = await res.text();
-  const [header, ...rows] = text.trim().split("\n").map(r => r.split(","));
-  return rows.map(r => Object.fromEntries(r.map((v,i)=>[header[i],v])));
+  const rows = text.trim().split("\n").map(r => r.split(","));
+  const headers = rows.shift();
+  return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i].trim(), v.trim()])));
 }
 
 async function main() {
   const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
-  if (!id) return;
+  const socioId = params.get("id");
+  if (!socioId) return;
 
-  const socios = await fetchCSV(sociosCSV);
-  const socio = socios.find(s => s["N° Socio"] == id);
+  const socios = await fetchCSV(SOCIOS_URL);
+  const servicios = await fetchCSV(SERVICIOS_URL);
 
-  if (!socio) {
-    document.getElementById("nombre").innerText = "No encontrado";
-    return;
-  }
+  const socio = socios.find(s => s["N° Socio"] === socioId);
+  if (!socio) return;
 
-  document.getElementById("nombre").innerText = socio.Nombre || "—";
-  document.getElementById("plan").innerText = socio.Plan || "—";
-  document.getElementById("estado").innerText = socio["Estado de Pago"] || "—";
+  document.getElementById("nombre").textContent = socio["Nombre"];
+  document.getElementById("plan").textContent = socio["Plan"];
+  document.getElementById("estado").textContent = socio["Estado de Pago"];
 
-  const servicios = await fetchCSV(serviciosCSV);
-  const servSocio = servicios.filter(s => s["N° Socio"] == id);
-  const lista = document.getElementById("servicios");
+  // Mostrar los últimos servicios con nombre
+  const servSocio = servicios.filter(s => s["N° Socio"] === socioId);
+  const serviciosDiv = document.getElementById("servicios");
 
-  if (servSocio.length === 0) {
-    lista.innerHTML = "<li>No hay servicios registrados.</li>";
-  } else {
-    lista.innerHTML = servSocio.map(s =>
-      <li>${s.Servicio || 'Sin detalle'} - ${s.Observaciones || ''}</li>
+  if (servSocio.length) {
+    serviciosDiv.innerHTML = servSocio.map(s =>
+      <p><strong>${s["Servicio"] || "Servicio"}:</strong> ${s["Observaciones"] || "Sin detalles"}</p>
     ).join("");
+  } else {
+    serviciosDiv.innerHTML = "<p>No hay servicios registrados.</p>";
   }
 
-  // Generar QR dinámico
-  const qrDiv = document.getElementById("qr");
-  const urlQR = https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(window.location.href)}&size=120x120;
-  qrDiv.innerHTML = <img src="${urlQR}" alt="QR del socio">;
+  // Generar QR
+  const qrUrl = https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.href)};
+  document.getElementById("qr").src = qrUrl;
 }
 
 main();
