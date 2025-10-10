@@ -1,152 +1,171 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C&B Cerrajería Balbín - Socio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carnet Digital - C&B Cerrajería Balbín</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #0b0c10, #1f2833);
-      color: #f1f1f1;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 {
-      color: #e0b84e;
-      font-size: 2em;
+      background-color: #0d0d0d;
+      color: #f2f2f2;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .card {
-      border: 2px solid #e0b84e;
-      border-radius: 15px;
-      padding: 20px;
-      margin: 20px auto;
-      width: 320px;
-      background: rgba(255, 255, 255, 0.05);
+      background: linear-gradient(135deg, #111, #1a1a1a);
+      border: 2px solid #c6a648;
+      border-radius: 18px;
+      box-shadow: 0 0 18px rgba(198, 166, 72, 0.5);
+      width: 340px;
+      padding: 25px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+    h2 {
+      color: #c6a648;
+      margin-bottom: 5px;
+    }
+    h4 {
+      margin-top: 0;
+      color: #999;
+      font-weight: 400;
+      font-size: 14px;
+    }
+    .section {
+      background: #141414;
+      border-radius: 10px;
+      margin-top: 10px;
+      padding: 10px;
       text-align: left;
     }
+    .section h3 {
+      color: #c6a648;
+      font-size: 15px;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 4px;
+    }
+    .info-item {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .qr {
+      margin-top: 12px;
+    }
     footer {
-      margin-top: 40px;
-      font-size: 0.9em;
-      color: #aaa;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #777;
+    }
+    .servicio {
+      margin-left: 10px;
+      font-size: 13px;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h1>C&B Cerrajería Balbín</h1>
-  <p>Membresía Digital</p>
-
   <div class="card">
-    <h2>Datos del Socio</h2>
-    <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
-    <p><strong>N° Socio:</strong> <span id="numero">...</span></p>
-    <p><strong>Plan:</strong> <span id="plan">...</span></p>
-    <p><strong>Estado de Pago:</strong> <span id="estado">...</span></p>
+    <img src="https://raw.githubusercontent.com/TuUsuario/TuRepositorio/main/logo.png" alt="Logo C&B" class="logo">
+    <h2>C&B Cerrajería Balbín</h2>
+    <h4>Carnet Digital de Socio</h4>
+
+    <div class="section" id="datosSocio">
+      <h3>Datos del Socio</h3>
+      <div class="info-item"><strong>Nombre:</strong> <span id="nombre"></span></div>
+      <div class="info-item"><strong>Plan:</strong> <span id="plan"></span></div>
+      <div class="info-item"><strong>Estado:</strong> <span id="estado"></span></div>
+    </div>
+
+    <div class="section" id="serviciosSocio">
+      <h3>Últimos Servicios Utilizados</h3>
+      <div id="servicios"></div>
+    </div>
+
+    <div class="qr">
+      <img id="qrImage" src="" alt="QR del socio" width="100">
+    </div>
+
+    <footer>
+      C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil <br />
+      Contacto: 2494 240906
+    </footer>
   </div>
 
-  <div class="card">
-    <h2>Últimos 3 Servicios</h2>
-    <ul id="servicios">
-      <li>Cargando...</li>
-    </ul>
-  </div>
+  <script>
+    // URLs de los CSV públicos
+    const SOCIOS_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv");
+    const SERVICIOS_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv");
 
-  <footer>
-    <p>Av. Balbín 1377 - Tandil</p>
-    <p>Tel: 2494240906</p>
-  </footer>
-
-<script>
-  // Enlaces a tus hojas CSV publicadas
-  var SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-  var SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
-  var PROXY = "https://api.allorigins.win/raw?url=";
-
-  function fetchCSV(url, callback) {
-    fetch(PROXY + encodeURIComponent(url))
-      .then(function(res) { return res.text(); })
-      .then(function(text) {
-        var rows = text.trim().split(/\r?\n/);
-        var headers = rows.shift().split(",");
-        var data = rows.map(function(row) {
-          var values = row.split(",");
-          var obj = {};
-          for (var i = 0; i < headers.length; i++) {
-            obj[headers[i].trim()] = (values[i] || "").trim();
-          }
-          return obj;
+    function csvToArray(str, delimiter = ",") {
+      const rows = str.trim().split("\n");
+      const headers = rows.shift().split(delimiter);
+      return rows.map(row => {
+        const values = row.split(delimiter);
+        const entry = {};
+        headers.forEach((header, i) => {
+          entry[header.trim()] = (values[i] || "").trim();
         });
-        console.log("Leído:", data.length, "filas de", url);
-        callback(data);
-      })
-      .catch(function(err) {
-        console.error("Error cargando CSV:", err);
-        callback([]);
+        return entry;
       });
-  }
-
-  function main() {
-    var params = new URLSearchParams(window.location.search);
-    var socioId = params.get("id");
-    console.log("Buscando socio ID:", socioId);
-
-    if (!socioId) {
-      document.getElementById("servicios").innerHTML = "<li>Falta ID en la URL</li>";
-      return;
     }
 
-    fetchCSV(SOCIOS_URL, function(socios) {
-      var socio = null;
-      for (var i = 0; i < socios.length; i++) {
-        if (socios[i]["N° Socio"] === socioId) {
-          socio = socios[i];
-          break;
-        }
-      }
+    const params = new URLSearchParams(window.location.search);
+    const socioId = params.get("id");
 
-      if (socio) {
-        document.getElementById("nombre").textContent = socio["Nombre"] || "";
-        document.getElementById("numero").textContent = socio["N° Socio"] || "";
-        document.getElementById("plan").textContent = socio["Plan"] || "";
-        document.getElementById("estado").textContent = socio["Estado de Pago"] || "";
-      } else {
-        document.getElementById("nombre").textContent = "No encontrado";
-      }
+    async function fetchCSV(url) {
+      const response = await fetch(url);
+      return csvToArray(await response.text());
+    }
 
-      // Ahora cargamos los servicios
-      fetchCSV(SERVICIOS_URL, function(servicios) {
-        var lista = document.getElementById("servicios");
-        lista.innerHTML = "";
-        var encontrados = [];
-        for (var j = 0; j < servicios.length; j++) {
-          if (servicios[j]["N° Socio"] === socioId) {
-            encontrados.push(servicios[j]);
-          }
-        }
+    async function mostrarDatos() {
+      try {
+        const socios = await fetchCSV(SOCIOS_URL);
+        const servicios = await fetchCSV(SERVICIOS_URL);
 
-        if (encontrados.length > 0) {
-          var ultimos = encontrados.slice(-3);
-          for (var k = 0; k < ultimos.length; k++) {
-            var s = ultimos[k];
-            var texto = "";
-            var campos = ["Servicio [Apertura]", "Servicio [Reparación]", "Servicio [Lubricación preventiva]", "Servicio [Cambio de cerradura]", "Dirección"];
-            for (var c = 0; c < campos.length; c++) {
-              if (s[campos[c]] && s[campos[c]].length > 0) {
-                texto += (texto ? " | " : "") + s[campos[c]];
-              }
-            }
-            var li = document.createElement("li");
-            li.textContent = texto || "Servicio registrado";
-            lista.appendChild(li);
-          }
+        const socio = socios.find(s => s["N° Socio"] === socioId);
+
+        if (socio) {
+          document.getElementById("nombre").textContent = socio["Nombre"] || "-";
+          document.getElementById("plan").textContent = socio["Plan"] || "-";
+          document.getElementById("estado").textContent = socio["Estado de Pago"] || "-";
+
+          // QR personalizado por socio
+          const qrURL = https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(window.location.href)}&size=120x120;
+          document.getElementById("qrImage").src = qrURL;
+
+          // Servicios recientes
+          const serviciosSocio = servicios
+            .filter(s => s["N° Socio"] === socioId)
+            .sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha))
+            .slice(0, 3);
+
+          const serviciosDiv = document.getElementById("servicios");
+          serviciosDiv.innerHTML = serviciosSocio.length
+            ? serviciosSocio.map(s => `
+              <div class="servicio">• ${s.Servicio} (${s.Fecha} – ${s.Dirección || "Sin dirección"})</div>
+            `).join("")
+            : "<div class='servicio'>Sin servicios utilizados todavía.</div>";
+
         } else {
-          lista.innerHTML = "<li>Sin servicios registrados</li>";
+          document.getElementById("datosSocio").innerHTML = "<p>No se encontró el socio.</p>";
         }
-      });
-    });
-  }
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+        document.getElementById("datosSocio").innerHTML = "<p>Error al cargar los datos.</p>";
+      }
+    }
 
-  main();
-</script>
+    mostrarDatos();
+  </script>
 </body>
 </html>
