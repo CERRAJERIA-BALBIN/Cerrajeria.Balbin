@@ -1,105 +1,202 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C&B Cerrajería Balbín - Socio</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Carnet Digital - C&B Cerrajería Balbín</title>
 <style>
-  body {
-    background: radial-gradient(circle at top, #111, #000);
-    color: #f4c542;
-    font-family: Arial, sans-serif;
-    text-align: center;
-  }
-  .container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    border: 2px solid #f4c542;
-    border-radius: 15px;
-    background: rgba(20,20,20,0.9);
-    box-shadow: 0 0 20px rgba(244,197,66,0.2);
-  }
-  h1 {
-    margin-bottom: 5px;
-  }
-  h2 {
-    border-bottom: 1px solid #f4c542;
-    padding-bottom: 4px;
-  }
-  p {
-    color: #ddd;
-    margin: 5px 0;
-  }
-  footer {
-    margin-top: 10px;
-    color: #aaa;
-    font-size: 13px;
-  }
+  body{background:radial-gradient(circle at top,#111,#000);color:#f4c542;font-family:Arial,Helvetica,sans-serif}
+  .card{max-width:420px;margin:50px auto;padding:22px;border:2px solid #f4c542;border-radius:14px;background:rgba(18,18,18,.9);box-shadow:0 8px 30px rgba(244,197,66,.12);text-align:center}
+  h1{margin:.1rem 0 6px;font-size:26px}
+  p,li{color:#eee;margin:6px 0}
+  h2{color:#f4c542;border-bottom:1px solid rgba(244,197,66,.28);padding-bottom:6px;margin:14px 0 10px}
+  footer{color:#aaa;font-size:13px;margin-top:12px}
+  #servicios p{margin:6px 0;color:#ddd}
+  .error{color:#ff8080}
 </style>
 </head>
 <body>
-  <div class="container">
-    <h1>C&B Cerrajería Balbín</h1>
-    <p>Membresía Digital</p>
+  <div class="card">
+    <h1>C&amp;B Cerrajería Balbín</h1>
+    <p><strong>Carnet digital del socio</strong></p>
 
     <h2>Datos del Socio</h2>
     <p><b>Nombre:</b> <span id="nombre">...</span></p>
-    <p><b>N° Socio:</b> <span id="numero">...</span></p>
+    <p><b>Nº Socio:</b> <span id="numero">...</span></p>
     <p><b>Plan:</b> <span id="plan">...</span></p>
     <p><b>Estado de Pago:</b> <span id="estado">...</span></p>
 
-    <h2>Últimos 3 Servicios</h2>
+    <h2>Últimos Servicios Utilizados</h2>
     <div id="servicios">Cargando...</div>
 
     <footer>
-      Av. Balbín 1377 - Tandil<br>
-      Tel: 2494240906
+      Av. Balbín 1377 - Tandil<br>Contacto: 2494 240906
     </footer>
   </div>
 
 <script>
+/* --- CONFIG: reemplaza si necesitás otros links --- */
 const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
 const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
 
-async function fetchCSV(url) {
-  const res = await fetch(url);
+/* util */
+function normalizeKey(s){ return (s||"").toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+/* robusto parser CSV (soporta comillas y comillas dobles) */
+function parseCSV(text){
+  const rows=[]; let cur=''; let row=[]; let inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(ch === '"'){
+      if(inQuotes && text[i+1] === '"'){ cur += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if(ch === ',' && !inQuotes){
+      row.push(cur); cur=''; 
+    } else if((ch === '\n' || ch === '\r') && !inQuotes){
+      if(ch === '\r' && text[i+1] === '\n'){ i++; }
+      row.push(cur); rows.push(row); row=[]; cur='';
+    } else {
+      cur += ch;
+    }
+  }
+  if(cur !== '' || row.length > 0){ row.push(cur); rows.push(row); }
+  // trim BOM and spaces
+  return rows.map(r => r.map(c => (c||'').replace(/^\uFEFF/,'').trim()));
+}
+
+/* fetch y validación de que sea CSV (no HTML de error) */
+async function fetchCSV(url){
+  const res = await fetch(url, { cache: "no-cache" });
+  if(!res.ok) throw new Error(No se pudo cargar: ${url} (status ${res.status}));
+  const ctype = (res.headers.get('content-type') || '');
   const text = await res.text();
-  const rows = text.trim().split("\n").map(r => r.split(","));
-  const headers = rows.shift();
-  return rows.map(r => Object.fromEntries(r.map((v, i) => [headers[i].trim(), v.trim()])));
+  if(ctype.includes('text/html') || text.trim().startsWith('<')) {
+    console.error('Respuesta HTML en vez de CSV:', text.slice(0,300));
+    throw new Error('El enlace no devuelve CSV (ver consola). Asegurate de "Publicar en web" y usar el link "output=csv".');
+  }
+  return parseCSV(text);
 }
 
-async function main() {
-  const params = new URLSearchParams(window.location.search);
-  const socioId = params.get("id");
-  if (!socioId) return;
-
-  const socios = await fetchCSV(SOCIOS_URL);
-  const servicios = await fetchCSV(SERVICIOS_URL);
-
-  const socio = socios.find(s => s["N° Socio"] === socioId);
-  if (!socio) {
-    document.getElementById("servicios").innerText = "Socio no encontrado.";
-    return;
+/* buscar índice de columna por varios nombres alternativos */
+function findIndexByNames(headers, names){
+  const norm = headers.map(h => normalizeKey(h||''));
+  for(const name of names){
+    const target = normalizeKey(name);
+    const i = norm.findIndex(h => h === target || h.includes(target));
+    if(i >= 0) return i;
   }
-
-  document.getElementById("nombre").innerText = socio["Nombre"] || "No disponible";
-  document.getElementById("numero").innerText = socio["N° Socio"] || socioId;
-  document.getElementById("plan").innerText = socio["Plan"] || "Sin plan";
-  document.getElementById("estado").innerText = socio["Estado de Pago"] || "Sin datos";
-
-  const servSocio = servicios.filter(s => s["N° Socio"] === socioId);
-  const serviciosDiv = document.getElementById("servicios");
-  if (servSocio.length) {
-    serviciosDiv.innerHTML = servSocio.slice(-3).map(s =>
-      <p>${s["Servicio [Apertura]"] || ""} ${s["Servicio [Reparacion]"] || ""} ${s["Servicio [Lubricacion preventiva]"] || ""}</p>
-    ).join("");
-  } else {
-    serviciosDiv.innerHTML = "<p>No hay servicios registrados.</p>";
-  }
+  return -1;
 }
-main();
+
+/* main */
+(async function main(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const socioId = (params.get('id')||'').trim();
+    if(!socioId){
+      document.getElementById('servicios').innerHTML = '<span class="error">No se indicó ?id= en la URL.</span>';
+      return;
+    }
+
+    // traemos CSVs
+    const sociosCsv = await fetchCSV(SOCIOS_URL);
+    const servCsv = await fetchCSV(SERVICIOS_URL);
+
+    if(sociosCsv.length < 1) throw new Error('CSV de socios vacío');
+    if(servCsv.length < 1) console.warn('CSV de servicios vacío');
+
+    const headersSoc = sociosCsv[0];
+    const rowsSoc = sociosCsv.slice(1);
+
+    // índices en sheet socios
+    const idxNroSoc = findIndexByNames(headersSoc, ['n° socio','nº socio','nsocio','nrosocio','numero']);
+    const idxNombre = findIndexByNames(headersSoc, ['nombre','nombre y apellido','name']);
+    const idxPlan = findIndexByNames(headersSoc, ['plan']);
+    const idxEstado = findIndexByNames(headersSoc, ['estado de pago','estado','estadodepago']);
+
+    // buscamos socio por id (compara string trimmed)
+    const socioRow = rowsSoc.find(r => {
+      const v = (r[idxNroSoc]||'').toString().trim();
+      return v === socioId || v === String(Number(socioId));
+    });
+
+    if(!socioRow){
+      document.getElementById('servicios').innerHTML = '<span class="error">Socio no encontrado. Revisá el ?id= o la planilla de socios.</span>';
+      return;
+    }
+
+    // volcar datos en la página
+    document.getElementById('nombre').innerText = (socioRow[idxNombre]||'No disponible');
+    document.getElementById('numero').innerText = (socioRow[idxNroSoc]||socioId);
+    document.getElementById('plan').innerText = (socioRow[idxPlan]||'Sin plan');
+    document.getElementById('estado').innerText = (socioRow[idxEstado]||'Sin datos');
+
+    // --- servicios: identifico columnas de servicio en la hoja de servicios ---
+    const headersServ = servCsv[0] || [];
+    const rowsServ = servCsv.slice(1);
+
+    // índice N° Socio en hoja de servicios (busca columna que contenga "socio" o "nº socio")
+    let idxNroServ = findIndexByNames(headersServ, ['n° socio','nº socio','nsocio','nrosocio','numero']);
+    if(idxNroServ === -1) {
+      // si no encuentra, probamos primera columna por seguridad
+      idxNroServ = 0;
+    }
+
+    // selecciono columnas que son "servicio" (contienen la palabra servicio o están en formato Servicio [X])
+    const serviceCols = headersServ.map((h,i) => ({h,i})).filter(x => {
+      const n = normalizeKey(x.h||'');
+      return n.includes('servicio') || /\[.*\]/.test(x.h||'');
+    });
+
+    // obtenemos filas del socio
+    const filasDelSocio = rowsServ.filter(r => ((r[idxNroServ]||'').toString().trim() === socioId));
+
+    if(!filasDelSocio.length){
+      document.getElementById('servicios').innerHTML = '<p>No hay servicios registrados para este socio.</p>';
+      return;
+    }
+
+    // por cada fila, armamos la lista de servicios (usa encabezado para el nombre)
+    const serviciosMostrados = [];
+    for(const r of filasDelSocio){
+      const picks = [];
+      for(const col of serviceCols){
+        const val = (r[col.i]||'').toString().trim();
+        let elegido = false;
+        if(val === '') elegido = false;
+        else if(val.indexOf('/') !== -1){ // formato "1/2"
+          const left = val.split('/')[0].replace(/[^\d]/g,'');
+          elegido = left !== '' && Number(left) > 0;
+        } else if(/^\d+$/.test(val)){ elegido = Number(val) > 0; }
+        else if(/^(si|sí|true|x|checked)$/i.test(val)) elegido = true;
+        else elegido = val !== '0';
+
+        if(elegido){
+          // saco nombre entre corchetes si existe: "Servicio [Apertura]" -> "Apertura"
+          let label = col.h || '';
+          const m = label.match(/\[(.*?)\]/);
+          if(m && m[1]) label = m[1];
+          else label = label.replace(/servicio/i,'').trim();
+          if(!label) label = col.h;
+          picks.push(label);
+        }
+      }
+      if(picks.length) serviciosMostrados.push(picks.join(' — '));
+    }
+
+    // mostramos hasta 3 últimos
+    const last3 = serviciosMostrados.slice(-3).reverse();
+    if(last3.length === 0){
+      document.getElementById('servicios').innerHTML = '<p>No hay servicios seleccionados (o el formato es distinto).</p>';
+    } else {
+      document.getElementById('servicios').innerHTML = last3.map(s => <p>${s}</p>).join('');
+    }
+
+  } catch(err){
+    console.error(err);
+    document.getElementById('servicios').innerHTML = <span class="error">Error: ${err.message||err}</span>;
+  }
+})();
 </script>
 </body>
 </html>
