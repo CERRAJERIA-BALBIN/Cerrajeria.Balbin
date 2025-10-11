@@ -3,71 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carnet Digital - C&B Cerrajería Balbín</title>
+<title>C&B Cerrajería Balbín - Socio</title>
 <style>
   body {
-    font-family: Arial, sans-serif;
     background: radial-gradient(circle at top, #111, #000);
     color: #f4c542;
+    font-family: Arial, sans-serif;
     text-align: center;
-    margin: 0;
-    padding: 0;
   }
-  .card {
-    width: 320px;
+  .container {
+    max-width: 400px;
     margin: 50px auto;
     padding: 20px;
     border: 2px solid #f4c542;
     border-radius: 15px;
+    background: rgba(20,20,20,0.9);
     box-shadow: 0 0 20px rgba(244,197,66,0.2);
-    background: rgba(30,30,30,0.9);
-  }
-  img.logo {
-    width: 100px;
-    margin-bottom: 10px;
   }
   h1 {
-    margin: 0;
-    color: #f4c542;
+    margin-bottom: 5px;
   }
-  h3 {
+  h2 {
     border-bottom: 1px solid #f4c542;
-    padding-bottom: 5px;
+    padding-bottom: 4px;
   }
-  #servicios p {
-    margin: 4px 0;
+  p {
     color: #ddd;
+    margin: 5px 0;
   }
   footer {
-    font-size: 13px;
     margin-top: 10px;
     color: #aaa;
-  }
-  img.qr {
-    width: 100px;
-    margin-top: 10px;
+    font-size: 13px;
   }
 </style>
 </head>
 <body>
-  <div class="card">
-    <img src="https://i.ibb.co/HVYKYX9/logo-cyb.png" class="logo" alt="Logo C&B">
+  <div class="container">
     <h1>C&B Cerrajería Balbín</h1>
-    <h3>Carnet Digital de Socio</h3>
+    <p>Membresía Digital</p>
 
-    <div id="datos">
-      <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
-      <p><strong>Plan:</strong> <span id="plan">...</span></p>
-      <p><strong>Estado:</strong> <span id="estado">...</span></p>
-    </div>
+    <h2>Datos del Socio</h2>
+    <p><b>Nombre:</b> <span id="nombre">...</span></p>
+    <p><b>N° Socio:</b> <span id="numero">...</span></p>
+    <p><b>Plan:</b> <span id="plan">...</span></p>
+    <p><b>Estado de Pago:</b> <span id="estado">...</span></p>
 
-    <h3>Últimos Servicios Utilizados</h3>
+    <h2>Últimos 3 Servicios</h2>
     <div id="servicios">Cargando...</div>
 
-    <img id="qr" class="qr" alt="QR del socio">
     <footer>
-      C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil<br>
-      Contacto: 2494 240906
+      Av. Balbín 1377 - Tandil<br>
+      Tel: 2494240906
     </footer>
   </div>
 
@@ -88,41 +75,30 @@ async function main() {
   const socioId = params.get("id");
   if (!socioId) return;
 
-  try {
-    const socios = await fetchCSV(SOCIOS_URL);
-    const servicios = await fetchCSV(SERVICIOS_URL);
+  const socios = await fetchCSV(SOCIOS_URL);
+  const servicios = await fetchCSV(SERVICIOS_URL);
 
-    const socio = socios.find(s => s["N° Socio"] === socioId);
-    if (!socio) {
-      document.getElementById("servicios").textContent = "Socio no encontrado.";
-      return;
-    }
+  const socio = socios.find(s => s["N° Socio"] === socioId);
+  if (!socio) {
+    document.getElementById("servicios").innerText = "Socio no encontrado.";
+    return;
+  }
 
-    document.getElementById("nombre").textContent = socio["Nombre"] || "Sin nombre";
-    document.getElementById("plan").textContent = socio["Plan"] || "No especificado";
-    document.getElementById("estado").textContent = socio["Estado de Pago"] || "Sin datos";
+  document.getElementById("nombre").innerText = socio["Nombre"] || "No disponible";
+  document.getElementById("numero").innerText = socio["N° Socio"] || socioId;
+  document.getElementById("plan").innerText = socio["Plan"] || "Sin plan";
+  document.getElementById("estado").innerText = socio["Estado de Pago"] || "Sin datos";
 
-    const servSocio = servicios.filter(s => s["N° Socio"] === socioId);
-    const serviciosDiv = document.getElementById("servicios");
-
-    if (servSocio.length) {
-      serviciosDiv.innerHTML = servSocio.map(s =>
-        <p><strong>${s["Servicio [Apertura]"] || "Servicio"}:</strong> ${s["Observaciones"] || "Sin detalles"}</p>
-      ).join("");
-    } else {
-      serviciosDiv.innerHTML = "<p>No hay servicios registrados.</p>";
-    }
-
-    // Generar QR dinámico
-    const qrUrl = https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.href)};
-    document.getElementById("qr").src = qrUrl;
-
-  } catch (e) {
-    document.getElementById("servicios").textContent = "Error al cargar datos.";
-    console.error("Error:", e);
+  const servSocio = servicios.filter(s => s["N° Socio"] === socioId);
+  const serviciosDiv = document.getElementById("servicios");
+  if (servSocio.length) {
+    serviciosDiv.innerHTML = servSocio.slice(-3).map(s =>
+      <p>${s["Servicio [Apertura]"] || ""} ${s["Servicio [Reparacion]"] || ""} ${s["Servicio [Lubricacion preventiva]"] || ""}</p>
+    ).join("");
+  } else {
+    serviciosDiv.innerHTML = "<p>No hay servicios registrados.</p>";
   }
 }
-
 main();
 </script>
 </body>
