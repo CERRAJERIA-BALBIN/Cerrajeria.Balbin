@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C&B Cerrajería Balbín - Socio</title>
+  <title>Carnet Digital del Socio</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,29 +14,38 @@
     }
     h1 {
       color: #e0b84e;
-      font-size: 2em;
+      font-size: 1.8em;
     }
     .card {
       border: 2px solid #e0b84e;
       border-radius: 15px;
       padding: 20px;
       margin: 20px auto;
-      width: 320px;
+      width: 340px;
       background: rgba(255, 255, 255, 0.05);
       text-align: left;
     }
-    h2 {
+    .card h2 {
       color: #e0b84e;
+      font-size: 1.2em;
       border-bottom: 1px solid #e0b84e;
-      padding-bottom: 5px;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
     }
     ul {
       list-style: none;
       padding: 0;
     }
     li {
-      padding: 5px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 6px;
+      line-height: 1.4em;
+    }
+    .datosExtra {
+      margin-left: 10px;
+      font-size: 0.95em;
+      color: #ccc;
+      border-left: 2px solid #e0b84e;
+      padding-left: 8px;
     }
     footer {
       margin-top: 40px;
@@ -46,8 +55,7 @@
   </style>
 </head>
 <body>
-  <h1>C&B Cerrajería Balbín</h1>
-  <p>Carnet Digital del Socio</p>
+  <h1>Carnet Digital del Socio</h1>
 
   <div class="card">
     <h2>Datos del Socio</h2>
@@ -120,26 +128,45 @@
         const registros = servicios.filter(s => s["N° Socio"] === socioId);
 
         if (registros.length > 0) {
-          registros.slice(-3).forEach(servicio => {
-            const partes = [];
+          let acumulado = {
+            "Servicio [Apertura]": "",
+            "Servicio [Reparación]": "",
+            "Servicio [Lubricación preventiva]": "",
+            "Servicio [Cambio de cerradura]": ""
+          };
+          let direcciones = [];
 
-            const apertura = servicio["Servicio [Apertura]"];
-            const reparacion = servicio["Servicio [Reparación]"];
-            const lubricacion = servicio["Servicio [Lubricación preventiva]"];
-            const cambio = servicio["Servicio [Cambio de cerradura]"];
+          registros.forEach(s => {
+            if (s["Servicio [Apertura]"]) acumulado["Servicio [Apertura]"] = s["Servicio [Apertura]"];
+            if (s["Servicio [Reparación]"]) acumulado["Servicio [Reparación]"] = s["Servicio [Reparación]"];
+            if (s["Servicio [Lubricación preventiva]"]) acumulado["Servicio [Lubricación preventiva]"] = s["Servicio [Lubricación preventiva]"];
+            if (s["Servicio [Cambio de cerradura]"]) acumulado["Servicio [Cambio de cerradura]"] = s["Servicio [Cambio de cerradura]"];
+            if (s["Dirección"]) {
+              // Permite saltos de línea y separa si hay varias líneas
+              const partes = s["Dirección"].split(/\n|;/).map(t => t.trim()).filter(t => t);
+              direcciones.push(...partes);
+            }
+          });
 
-            if (apertura) partes.push("Apertura " + apertura);
-            if (reparacion) partes.push("Reparación " + reparacion);
-            if (lubricacion) partes.push("Lubricación preventiva " + lubricacion);
-            if (cambio) partes.push("Cambio de cerradura " + cambio);
+          // Mostrar línea de servicios
+          const partes = [];
+          if (acumulado["Servicio [Apertura]"]) partes.push("Apertura " + acumulado["Servicio [Apertura]"]);
+          if (acumulado["Servicio [Reparación]"]) partes.push("Reparación " + acumulado["Servicio [Reparación]"]);
+          if (acumulado["Servicio [Lubricación preventiva]"]) partes.push("Lubricación " + acumulado["Servicio [Lubricación preventiva]"]);
+          if (acumulado["Servicio [Cambio de cerradura]"]) partes.push("Cambio de cerradura " + acumulado["Servicio [Cambio de cerradura]"]);
 
-            let texto = partes.join(" | ");
-            if (servicio["Dirección"]) texto += " - " + servicio["Dirección"];
+          const liServicios = document.createElement("li");
+          liServicios.textContent = partes.join(" | ") || "Sin servicios registrados";
+          lista.appendChild(liServicios);
 
+          // Mostrar direcciones / datos adicionales
+          direcciones.forEach(dir => {
             const li = document.createElement("li");
-            li.textContent = texto || "Servicio registrado";
+            li.className = "datosExtra";
+            li.textContent = dir;
             lista.appendChild(li);
           });
+
         } else {
           lista.innerHTML = "<li>Sin servicios registrados</li>";
         }
