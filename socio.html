@@ -70,12 +70,10 @@
   </footer>
 
 <script>
-  // URLs de los CSV
   const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
   const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
   const PROXY = "https://api.allorigins.win/raw?url=";
 
-  // Función para leer CSV
   function fetchCSV(url, callback) {
     fetch(PROXY + encodeURIComponent(url))
       .then(res => res.text())
@@ -105,7 +103,6 @@
       return;
     }
 
-    // Buscar datos del socio
     fetchCSV(SOCIOS_URL, socios => {
       const socio = socios.find(s => s["N° Socio"] === socioId);
       if (socio) {
@@ -117,7 +114,6 @@
         document.getElementById("nombre").textContent = "No encontrado";
       }
 
-      // Buscar servicios del socio
       fetchCSV(SERVICIOS_URL, servicios => {
         const lista = document.getElementById("servicios");
         lista.innerHTML = "";
@@ -125,13 +121,19 @@
 
         if (registros.length > 0) {
           registros.slice(-3).forEach(servicio => {
-            const items = [];
-            if (servicio["Servicio [Apertura]"]) items.push("Apertura");
-            if (servicio["Servicio [Reparación]"]) items.push("Reparación");
-            if (servicio["Servicio [Lubricación preventiva]"]) items.push("Lubricación preventiva");
-            if (servicio["Servicio [Cambio de cerradura]"]) items.push("Cambio de cerradura");
+            const partes = [];
 
-            let texto = items.join(" | ");
+            const apertura = servicio["Servicio [Apertura]"];
+            const reparacion = servicio["Servicio [Reparación]"];
+            const lubricacion = servicio["Servicio [Lubricación preventiva]"];
+            const cambio = servicio["Servicio [Cambio de cerradura]"];
+
+            if (apertura) partes.push("Apertura " + apertura);
+            if (reparacion) partes.push("Reparación " + reparacion);
+            if (lubricacion) partes.push("Lubricación preventiva " + lubricacion);
+            if (cambio) partes.push("Cambio de cerradura " + cambio);
+
+            let texto = partes.join(" | ");
             if (servicio["Dirección"]) texto += " - " + servicio["Dirección"];
 
             const li = document.createElement("li");
