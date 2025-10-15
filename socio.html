@@ -116,9 +116,7 @@
           }
 
           div.innerHTML = "";
-          const s = lista[lista.length - 1]; // Toma el último registro de servicios
 
-          const partes = [];
           const campos = [
             "Servicio [Apertura]",
             "Servicio [Reparación]",
@@ -126,10 +124,18 @@
             "Servicio [Cambio de cerradura]"
           ];
 
-          campos.forEach((campo) => {
-            if (s[campo] && s[campo].length > 0) {
-              const nombre = campo.replace("Servicio [", "").replace("]", "");
-              partes.push(${nombre} ${s[campo]});
+          let partes = [];
+          let direcciones = [];
+
+          lista.forEach((s) => {
+            campos.forEach((campo) => {
+              if (s[campo] && s[campo].length > 0) {
+                const nombre = campo.replace("Servicio [", "").replace("]", "");
+                partes.push(${nombre} ${s[campo]});
+              }
+            });
+            if (s["Dirección"] && s["Dirección"].length > 0) {
+              direcciones.push(s["Dirección"]);
             }
           });
 
@@ -137,10 +143,10 @@
             div.innerHTML = partes.join(" | ");
           }
 
-          if (s["Dirección"]) {
+          if (direcciones.length > 0) {
             const direccion = document.createElement("div");
             direccion.className = "direccion";
-            direccion.textContent = "Dirección / Datos:\n" + s["Dirección"];
+            direccion.textContent = "Dirección / Datos:\n" + direcciones.join("\n");
             div.appendChild(direccion);
           }
         });
