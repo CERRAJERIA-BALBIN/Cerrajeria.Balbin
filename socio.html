@@ -25,6 +25,19 @@
       background: rgba(255, 255, 255, 0.05);
       text-align: left;
     }
+    h2 {
+      color: #e0b84e;
+      border-bottom: 1px solid #e0b84e;
+      padding-bottom: 5px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
     footer {
       margin-top: 40px;
       font-size: 0.9em;
@@ -34,7 +47,7 @@
 </head>
 <body>
   <h1>C&B Cerrajería Balbín</h1>
-  <p>Membresía Digital</p>
+  <p>Carnet Digital del Socio</p>
 
   <div class="card">
     <h2>Datos del Socio</h2>
@@ -45,65 +58,56 @@
   </div>
 
   <div class="card">
-    <h2>Últimos 3 Servicios</h2>
+    <h2>Últimos Servicios Utilizados</h2>
     <ul id="servicios">
       <li>Cargando...</li>
     </ul>
   </div>
 
   <footer>
-    <p>Av. Balbín 1377 - Tandil</p>
-    <p>Tel: 2494240906</p>
+    <p>C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil</p>
+    <p>Contacto: 2494 240906</p>
   </footer>
 
 <script>
-  // Enlaces a tus hojas CSV publicadas
-  var SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-  var SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
-  var PROXY = "https://api.allorigins.win/raw?url=";
+  // URLs de los CSV
+  const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+  const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+  const PROXY = "https://api.allorigins.win/raw?url=";
 
+  // Función para leer CSV
   function fetchCSV(url, callback) {
     fetch(PROXY + encodeURIComponent(url))
-      .then(function(res) { return res.text(); })
-      .then(function(text) {
-        var rows = text.trim().split(/\r?\n/);
-        var headers = rows.shift().split(",");
-        var data = rows.map(function(row) {
-          var values = row.split(",");
-          var obj = {};
-          for (var i = 0; i < headers.length; i++) {
-            obj[headers[i].trim()] = (values[i] || "").trim();
-          }
+      .then(res => res.text())
+      .then(text => {
+        const rows = text.trim().split(/\r?\n/);
+        const headers = rows.shift().split(",");
+        const data = rows.map(row => {
+          const values = row.split(",");
+          const obj = {};
+          headers.forEach((h, i) => obj[h.trim()] = (values[i] || "").trim());
           return obj;
         });
-        console.log("Leído:", data.length, "filas de", url);
         callback(data);
       })
-      .catch(function(err) {
+      .catch(err => {
         console.error("Error cargando CSV:", err);
         callback([]);
       });
   }
 
   function main() {
-    var params = new URLSearchParams(window.location.search);
-    var socioId = params.get("id");
-    console.log("Buscando socio ID:", socioId);
+    const params = new URLSearchParams(window.location.search);
+    const socioId = params.get("id");
 
     if (!socioId) {
       document.getElementById("servicios").innerHTML = "<li>Falta ID en la URL</li>";
       return;
     }
 
-    fetchCSV(SOCIOS_URL, function(socios) {
-      var socio = null;
-      for (var i = 0; i < socios.length; i++) {
-        if (socios[i]["N° Socio"] === socioId) {
-          socio = socios[i];
-          break;
-        }
-      }
-
+    // Buscar datos del socio
+    fetchCSV(SOCIOS_URL, socios => {
+      const socio = socios.find(s => s["N° Socio"] === socioId);
       if (socio) {
         document.getElementById("nombre").textContent = socio["Nombre"] || "";
         document.getElementById("numero").textContent = socio["N° Socio"] || "";
@@ -113,32 +117,27 @@
         document.getElementById("nombre").textContent = "No encontrado";
       }
 
-      // Ahora cargamos los servicios
-      fetchCSV(SERVICIOS_URL, function(servicios) {
-        var lista = document.getElementById("servicios");
+      // Buscar servicios del socio
+      fetchCSV(SERVICIOS_URL, servicios => {
+        const lista = document.getElementById("servicios");
         lista.innerHTML = "";
-        var encontrados = [];
-        for (var j = 0; j < servicios.length; j++) {
-          if (servicios[j]["N° Socio"] === socioId) {
-            encontrados.push(servicios[j]);
-          }
-        }
+        const registros = servicios.filter(s => s["N° Socio"] === socioId);
 
-        if (encontrados.length > 0) {
-          var ultimos = encontrados.slice(-3);
-          for (var k = 0; k < ultimos.length; k++) {
-            var s = ultimos[k];
-            var texto = "";
-            var campos = ["Servicio [Apertura]", "Servicio [Reparación]", "Servicio [Lubricación preventiva]", "Servicio [Cambio de cerradura]", "Dirección"];
-            for (var c = 0; c < campos.length; c++) {
-              if (s[campos[c]] && s[campos[c]].length > 0) {
-                texto += (texto ? " | " : "") + s[campos[c]];
-              }
-            }
-            var li = document.createElement("li");
+        if (registros.length > 0) {
+          registros.slice(-3).forEach(servicio => {
+            const items = [];
+            if (servicio["Servicio [Apertura]"]) items.push("Apertura");
+            if (servicio["Servicio [Reparación]"]) items.push("Reparación");
+            if (servicio["Servicio [Lubricación preventiva]"]) items.push("Lubricación preventiva");
+            if (servicio["Servicio [Cambio de cerradura]"]) items.push("Cambio de cerradura");
+
+            let texto = items.join(" | ");
+            if (servicio["Dirección"]) texto += " - " + servicio["Dirección"];
+
+            const li = document.createElement("li");
             li.textContent = texto || "Servicio registrado";
             lista.appendChild(li);
-          }
+          });
         } else {
           lista.innerHTML = "<li>Sin servicios registrados</li>";
         }
