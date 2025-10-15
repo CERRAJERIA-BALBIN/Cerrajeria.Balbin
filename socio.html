@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carnet Digital del Socio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C&B Cerrajería Balbín - Socio</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,43 +14,27 @@
     }
     h1 {
       color: #e0b84e;
-      font-size: 1.8em;
+      font-size: 2em;
     }
     .card {
       border: 2px solid #e0b84e;
       border-radius: 15px;
       padding: 20px;
       margin: 20px auto;
-      width: 340px;
+      width: 320px;
       background: rgba(255, 255, 255, 0.05);
       text-align: left;
-    }
-    .card h2 {
-      color: #e0b84e;
-      font-size: 1.2em;
-      border-bottom: 1px solid #e0b84e;
-      padding-bottom: 6px;
-      margin-bottom: 10px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin-bottom: 6px;
-      line-height: 1.4em;
-    }
-    .datosExtra {
-      margin-left: 10px;
-      font-size: 0.95em;
-      color: #ccc;
-      border-left: 2px solid #e0b84e;
-      padding-left: 8px;
     }
     footer {
       margin-top: 40px;
       font-size: 0.9em;
       color: #aaa;
+    }
+    .direccion {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #ccc;
+      white-space: pre-line;
     }
   </style>
 </head>
@@ -67,114 +51,103 @@
 
   <div class="card">
     <h2>Últimos Servicios Utilizados</h2>
-    <ul id="servicios">
-      <li>Cargando...</li>
-    </ul>
+    <div id="servicios">Cargando...</div>
   </div>
 
   <footer>
-    <p>C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil</p>
+    <p>C&B Cerrajería Balbín - Av. Balbín 1377 - Tandil</p>
     <p>Contacto: 2494 240906</p>
   </footer>
 
-<script>
-  const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-  const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
-  const PROXY = "https://api.allorigins.win/raw?url=";
+  <script>
+    const SOCIOS_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
+    const SERVICIOS_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+    const PROXY = "https://api.allorigins.win/raw?url=";
 
-  function fetchCSV(url, callback) {
-    fetch(PROXY + encodeURIComponent(url))
-      .then(res => res.text())
-      .then(text => {
-        const rows = text.trim().split(/\r?\n/);
-        const headers = rows.shift().split(",");
-        const data = rows.map(row => {
-          const values = row.split(",");
-          const obj = {};
-          headers.forEach((h, i) => obj[h.trim()] = (values[i] || "").trim());
-          return obj;
+    function fetchCSV(url, callback) {
+      fetch(PROXY + encodeURIComponent(url))
+        .then((res) => res.text())
+        .then((text) => {
+          const rows = text.trim().split(/\r?\n/);
+          const headers = rows.shift().split(",");
+          const data = rows.map((row) => {
+            const values = row.split(",");
+            const obj = {};
+            headers.forEach((h, i) => (obj[h.trim()] = (values[i] || "").trim()));
+            return obj;
+          });
+          callback(data);
+        })
+        .catch((err) => {
+          console.error("Error CSV:", err);
+          callback([]);
         });
-        callback(data);
-      })
-      .catch(err => {
-        console.error("Error cargando CSV:", err);
-        callback([]);
-      });
-  }
-
-  function main() {
-    const params = new URLSearchParams(window.location.search);
-    const socioId = params.get("id");
-
-    if (!socioId) {
-      document.getElementById("servicios").innerHTML = "<li>Falta ID en la URL</li>";
-      return;
     }
 
-    fetchCSV(SOCIOS_URL, socios => {
-      const socio = socios.find(s => s["N° Socio"] === socioId);
-      if (socio) {
-        document.getElementById("nombre").textContent = socio["Nombre"] || "";
-        document.getElementById("numero").textContent = socio["N° Socio"] || "";
-        document.getElementById("plan").textContent = socio["Plan"] || "";
-        document.getElementById("estado").textContent = socio["Estado de Pago"] || "";
-      } else {
-        document.getElementById("nombre").textContent = "No encontrado";
+    function main() {
+      const params = new URLSearchParams(window.location.search);
+      const socioId = params.get("id");
+      if (!socioId) {
+        document.getElementById("servicios").textContent = "Falta ID en la URL";
+        return;
       }
 
-      fetchCSV(SERVICIOS_URL, servicios => {
-        const lista = document.getElementById("servicios");
-        lista.innerHTML = "";
-        const registros = servicios.filter(s => s["N° Socio"] === socioId);
+      fetchCSV(SOCIOS_URL, (socios) => {
+        const socio = socios.find((s) => s["N° Socio"] === socioId);
+        if (!socio) {
+          document.getElementById("servicios").textContent = "Socio no encontrado";
+          return;
+        }
 
-        if (registros.length > 0) {
-          let acumulado = {
-            "Servicio [Apertura]": "",
-            "Servicio [Reparación]": "",
-            "Servicio [Lubricación preventiva]": "",
-            "Servicio [Cambio de cerradura]": ""
-          };
-          let direcciones = [];
+        document.getElementById("nombre").textContent = socio["Nombre"];
+        document.getElementById("numero").textContent = socio["N° Socio"];
+        document.getElementById("plan").textContent = socio["Plan"];
+        document.getElementById("estado").textContent = socio["Estado de Pago"];
 
-          registros.forEach(s => {
-            if (s["Servicio [Apertura]"]) acumulado["Servicio [Apertura]"] = s["Servicio [Apertura]"];
-            if (s["Servicio [Reparación]"]) acumulado["Servicio [Reparación]"] = s["Servicio [Reparación]"];
-            if (s["Servicio [Lubricación preventiva]"]) acumulado["Servicio [Lubricación preventiva]"] = s["Servicio [Lubricación preventiva]"];
-            if (s["Servicio [Cambio de cerradura]"]) acumulado["Servicio [Cambio de cerradura]"] = s["Servicio [Cambio de cerradura]"];
-            if (s["Dirección"]) {
-              // Permite saltos de línea y separa si hay varias líneas
-              const partes = s["Dirección"].split(/\n|;/).map(t => t.trim()).filter(t => t);
-              direcciones.push(...partes);
+        fetchCSV(SERVICIOS_URL, (servicios) => {
+          const lista = servicios.filter((s) => s["N° Socio"] === socioId);
+          const div = document.getElementById("servicios");
+
+          if (lista.length === 0) {
+            div.textContent = "Sin servicios registrados";
+            return;
+          }
+
+          div.innerHTML = "";
+          const s = lista[lista.length - 1]; // Toma el último registro de servicios
+
+          const partes = [];
+          const campos = [
+            "Servicio [Apertura]",
+            "Servicio [Reparación]",
+            "Servicio [Lubricacion preventiva]",
+            "Servicio [Cambio de cerradura]"
+          ];
+
+          campos.forEach((campo) => {
+            if (s[campo] && s[campo].length > 0) {
+              const nombre = campo.replace("Servicio [", "").replace("]", "");
+              partes.push(${nombre} ${s[campo]});
             }
           });
 
-          // Mostrar línea de servicios
-          const partes = [];
-          if (acumulado["Servicio [Apertura]"]) partes.push("Apertura " + acumulado["Servicio [Apertura]"]);
-          if (acumulado["Servicio [Reparación]"]) partes.push("Reparación " + acumulado["Servicio [Reparación]"]);
-          if (acumulado["Servicio [Lubricación preventiva]"]) partes.push("Lubricación " + acumulado["Servicio [Lubricación preventiva]"]);
-          if (acumulado["Servicio [Cambio de cerradura]"]) partes.push("Cambio de cerradura " + acumulado["Servicio [Cambio de cerradura]"]);
+          if (partes.length > 0) {
+            div.innerHTML = partes.join(" | ");
+          }
 
-          const liServicios = document.createElement("li");
-          liServicios.textContent = partes.join(" | ") || "Sin servicios registrados";
-          lista.appendChild(liServicios);
-
-          // Mostrar direcciones / datos adicionales
-          direcciones.forEach(dir => {
-            const li = document.createElement("li");
-            li.className = "datosExtra";
-            li.textContent = dir;
-            lista.appendChild(li);
-          });
-
-        } else {
-          lista.innerHTML = "<li>Sin servicios registrados</li>";
-        }
+          if (s["Dirección"]) {
+            const direccion = document.createElement("div");
+            direccion.className = "direccion";
+            direccion.textContent = "Dirección / Datos:\n" + s["Dirección"];
+            div.appendChild(direccion);
+          }
+        });
       });
-    });
-  }
+    }
 
-  main();
-</script>
+    main();
+  </script>
 </body>
 </html>
