@@ -31,6 +31,10 @@
       font-size: 0.9em;
       color: #aaa;
     }
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
   </style>
 </head>
 <body>
@@ -46,7 +50,9 @@
 
   <div class="card">
     <h2>Últimos Servicios Utilizados</h2>
-    <ul id="servicios"><li>Cargando...</li></ul>
+    <ul id="servicios">
+      <li>Cargando...</li>
+    </ul>
   </div>
 
   <footer>
@@ -56,82 +62,71 @@
 
 <script>
   const SOCIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=0&single=true&output=csv";
-  const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=1745929313&single=true&output=csv";
+  const SERVICIOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQqKxPsd9noQiLmoq4qG6YUvxP-bamjSYCc54KcR67aJilqTSVJmYWRH844FS3jZRrN-jN3Kc3R40k/pub?gid=978800516&single=true&output=csv";
   const PROXY = "https://api.allorigins.win/raw?url=";
 
-  async function fetchCSV(url) {
-    const res = await fetch(PROXY + encodeURIComponent(url));
-    const text = await res.text();
-    const [headerLine, ...lines] = text.trim().split(/\r?\n/);
-    const headers = headerLine.split(",");
-    return lines.map(line => {
-      const values = line.split(",");
-      const obj = {};
-      headers.forEach((h, i) => obj[h.trim()] = (values[i] || "").trim());
-      return obj;
-    });
+  function fetchCSV(url, callback) {
+    fetch(PROXY + encodeURIComponent(url))
+      .then(r => r.text())
+      .then(text => {
+        const rows = text.trim().split(/\r?\n/);
+        const headers = rows.shift().split(",");
+        const data = rows.map(row => {
+          const values = row.split(",");
+          const obj = {};
+          headers.forEach((h, i) => obj[h.trim()] = (values[i] || "").trim());
+          return obj;
+        });
+        callback(data);
+      })
+      .catch(() => callback([]));
   }
 
-  async function main() {
+  function main() {
     const params = new URLSearchParams(window.location.search);
     const socioId = params.get("id");
-    if (!socioId) {
-      document.getElementById("servicios").innerHTML = "<li>Falta ID en la URL</li>";
-      return;
-    }
 
-    try {
-      const socios = await fetchCSV(SOCIOS_URL);
+    if (!socioId) return;
+
+    fetchCSV(SOCIOS_URL, socios => {
       const socio = socios.find(s => s["N° Socio"] === socioId);
-
       if (socio) {
-        document.getElementById("nombre").textContent = socio["Nombre"] || "";
-        document.getElementById("numero").textContent = socio["N° Socio"] || "";
-        document.getElementById("plan").textContent = socio["Plan"] || "";
-        document.getElementById("estado").textContent = socio["Estado de Pago"] || "";
-      } else {
-        document.getElementById("nombre").textContent = "No encontrado";
-        return;
+        document.getElementById("nombre").textContent = socio["Nombre"];
+        document.getElementById("numero").textContent = socio["N° Socio"];
+        document.getElementById("plan").textContent = socio["Plan"];
+        document.getElementById("estado").textContent = socio["Estado de Pago"];
       }
 
-      const servicios = await fetchCSV(SERVICIOS_URL);
-      const lista = document.getElementById("servicios");
-      lista.innerHTML = "";
+      fetchCSV(SERVICIOS_URL, servicios => {
+        const lista = document.getElementById("servicios");
+        lista.innerHTML = "";
 
-      const registros = servicios.filter(s => s["N° Socio"] === socioId);
-      if (registros.length === 0) {
-        lista.innerHTML = "<li>Sin servicios registrados</li>";
-        return;
-      }
-
-      registros.forEach(s => {
-        const campos = [
-          "Servicio [Apertura]",
-          "Servicio [Reparación]",
-          "Servicio [Lubricacion preventiva]",
-          "Servicio [Cambio de cerradura]"
-        ];
-        let texto = campos
-          .filter(c => s[c] && s[c].length > 0)
-          .map(c => s[c])
-          .join(" | ");
-
-        if (s["Dirección"]) {
-          texto += ` — ${s["Dirección"]}`;
+        const reg = servicios.filter(s => s["N° Socio"] === socioId);
+        if (reg.length === 0) {
+          lista.innerHTML = "<li>Sin servicios registrados</li>";
+          return;
         }
 
-        const li = document.createElement("li");
-        li.textContent = texto;
-        lista.appendChild(li);
-      });
+        reg.forEach(s => {
+          let texto = "";
 
-    } catch (err) {
-      console.error("Error:", err);
-      document.getElementById("servicios").innerHTML = "<li>Error al cargar datos</li>";
-    }
+          if (s["Servicio [Apertura]"]) texto += `Apertura ${s["Servicio [Apertura]"]}`;
+          if (s["Servicio [Reparación]"]) texto += `${texto ? " | " : ""}Reparación ${s["Servicio [Reparación]"]}`;
+          if (s["Servicio [Lubricacion]"] || s["Servicio [Lubricación preventiva]"]) texto += `${texto ? " | " : ""}Lubricación ${s["Servicio [Lubricacion]"] || s["Servicio [Lubricación preventiva]"]}`;
+          if (s["Servicio [Cambio de cerradura]"]) texto += `${texto ? " | " : ""}Cambio de cerradura ${s["Servicio [Cambio de cerradura]"]}`;
+
+          if (s["Dirección"]) texto += `\n📍 ${s["Dirección"]}`;
+
+          const li = document.createElement("li");
+          li.textContent = texto;
+          lista.appendChild(li);
+        });
+      });
+    });
   }
 
   main();
 </script>
 </body>
 </html>
+
