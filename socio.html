@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Carnet Digital del Socio</title>
   <style>
@@ -26,14 +26,19 @@
       background: rgba(255, 255, 255, 0.05);
       text-align: left;
     }
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+    li {
+      margin-bottom: 8px;
+      white-space: pre-line;
+    }
     footer {
       margin-top: 40px;
       font-size: 0.9em;
       color: #aaa;
-    }
-    ul {
-      list-style-type: disc;
-      padding-left: 20px;
     }
   </style>
 </head>
@@ -42,16 +47,16 @@
 
   <div class="card">
     <h2>Datos del Socio</h2>
-    <p><strong>Nombre:</strong> <span id="nombre">...</span></p>
-    <p><strong>N° Socio:</strong> <span id="numero">...</span></p>
-    <p><strong>Plan:</strong> <span id="plan">...</span></p>
-    <p><strong>Estado de Pago:</strong> <span id="estado">...</span></p>
+    <p><strong>Nombre:</strong> <span id="nombre">-</span></p>
+    <p><strong>N° Socio:</strong> <span id="numero">-</span></p>
+    <p><strong>Plan:</strong> <span id="plan">-</span></p>
+    <p><strong>Estado de Pago:</strong> <span id="estado">-</span></p>
   </div>
 
   <div class="card">
     <h2>Últimos Servicios Utilizados</h2>
     <ul id="servicios">
-      <li>Cargando...</li>
+      <li>Cargando datos...</li>
     </ul>
   </div>
 
@@ -86,39 +91,41 @@
     const params = new URLSearchParams(window.location.search);
     const socioId = params.get("id");
 
-    if (!socioId) return;
+    if (!socioId) {
+      document.body.innerHTML = "<h2>⚠️ No se encontró el socio. Agrega ?id= en la URL.</h2>";
+      return;
+    }
 
     fetchCSV(SOCIOS_URL, socios => {
       const socio = socios.find(s => s["N° Socio"] === socioId);
-      if (socio) {
-        document.getElementById("nombre").textContent = socio["Nombre"];
-        document.getElementById("numero").textContent = socio["N° Socio"];
-        document.getElementById("plan").textContent = socio["Plan"];
-        document.getElementById("estado").textContent = socio["Estado de Pago"];
+      if (!socio) {
+        document.body.innerHTML = "<h2>❌ Socio no encontrado.</h2>";
+        return;
       }
+
+      document.getElementById("nombre").textContent = socio["Nombre"];
+      document.getElementById("numero").textContent = socio["N° Socio"];
+      document.getElementById("plan").textContent = socio["Plan"];
+      document.getElementById("estado").textContent = socio["Estado de Pago"];
 
       fetchCSV(SERVICIOS_URL, servicios => {
         const lista = document.getElementById("servicios");
         lista.innerHTML = "";
 
         const reg = servicios.filter(s => s["N° Socio"] === socioId);
-        if (reg.length === 0) {
-          lista.innerHTML = "<li>Sin servicios registrados</li>";
-          return;
-        }
+        const servicio = reg[0] || {};
 
-        reg.forEach(s => {
-          let texto = "";
+        const serviciosPosibles = [
+          { nombre: "Apertura", key: "Servicio [Apertura]" },
+          { nombre: "Reparación", key: "Servicio [Reparación]" },
+          { nombre: "Lubricación preventiva", key: "Servicio [Lubricacion]" },
+          { nombre: "Cambio de cerradura", key: "Servicio [Cambio de cerradura]" }
+        ];
 
-          if (s["Servicio [Apertura]"]) texto += `Apertura ${s["Servicio [Apertura]"]}`;
-          if (s["Servicio [Reparación]"]) texto += `${texto ? " | " : ""}Reparación ${s["Servicio [Reparación]"]}`;
-          if (s["Servicio [Lubricacion]"] || s["Servicio [Lubricación preventiva]"]) texto += `${texto ? " | " : ""}Lubricación ${s["Servicio [Lubricacion]"] || s["Servicio [Lubricación preventiva]"]}`;
-          if (s["Servicio [Cambio de cerradura]"]) texto += `${texto ? " | " : ""}Cambio de cerradura ${s["Servicio [Cambio de cerradura]"]}`;
-
-          if (s["Dirección"]) texto += `\n📍 ${s["Dirección"]}`;
-
+        serviciosPosibles.forEach(sv => {
+          const valor = servicio[sv.key] || "0/2";
           const li = document.createElement("li");
-          li.textContent = texto;
+          li.textContent = `${sv.nombre}: ${valor}`;
           lista.appendChild(li);
         });
       });
@@ -129,4 +136,3 @@
 </script>
 </body>
 </html>
-
