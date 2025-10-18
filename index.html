@@ -1,116 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>C&B Cerrajería Balbín - Membresías</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
       background: radial-gradient(circle at top, #0b0c10, #1f2833);
       color: #f1f1f1;
       text-align: center;
-      padding: 40px;
     }
-    h1 {
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(0,0,0,0.8);
+      padding: 15px 30px;
+      border-bottom: 2px solid #e0b84e;
+    }
+
+    header img {
+      height: 60px;
+    }
+
+    header h1 {
       color: #e0b84e;
-      font-size: 2.3em;
-      margin-bottom: 15px;
+      font-size: 1.8em;
+      margin: 0;
+      flex: 1;
+      text-align: center;
     }
-    h2 {
-      color: #e0b84e;
-      font-size: 1.3em;
-      margin-bottom: 10px;
+
+    main {
+      padding: 30px;
     }
-    .card {
+
+    .folleto {
+      max-width: 900px;
+      width: 95%;
+      margin: 0 auto;
       border: 2px solid #e0b84e;
       border-radius: 15px;
-      padding: 25px;
-      margin: 30px auto;
-      width: 340px;
-      background: rgba(255, 255, 255, 0.05);
-      text-align: center;
+      overflow: hidden;
+      background-color: rgba(255,255,255,0.05);
     }
-    input {
-      padding: 10px;
-      border: 1px solid #e0b84e;
-      border-radius: 8px;
-      background: #1f2833;
-      color: #fff;
-      width: 150px;
-      text-align: center;
-      margin-right: 10px;
-    }
-    button {
-      background: #e0b84e;
-      border: none;
-      color: #0b0c10;
-      font-weight: bold;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    button:hover {
-      background: #f1c75b;
-    }
-    #planes img {
+
+    .folleto img {
       width: 100%;
-      border-radius: 10px;
-      margin-top: 15px;
+      display: block;
     }
+
     footer {
-      margin-top: 50px;
+      margin-top: 40px;
       font-size: 0.9em;
       color: #aaa;
+    }
+
+    footer p {
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
-  <h1>C&B Cerrajería Balbín</h1>
-  <h2>Membresía Digital</h2>
 
-  <div class="card">
-    <h3>🔍 Buscar tu Carnet Digital</h3>
-    <p>Ingresá tu número de socio para ver tus datos</p>
-    <input type="number" id="socioId" placeholder="N° Socio">
-    <button onclick="buscarSocio()">Buscar</button>
-  </div>
+  <header>
+    <img src="logo.png" alt="Logo C&B Cerrajería Balbín">
+    <h1>Planes de Membresía</h1>
+  </header>
 
-  <div class="card" id="planes">
-    <h3>💡 Ver Planes Disponibles</h3>
-    <button onclick="mostrarPlanes()">Mostrar Planes</button>
-    <div id="imagenPlanes" style="display:none;">
-      <img src="https://github.com/CERRAJERIA-BALBIN/Cerrajeria.Balbin/blob/main/Planes.png" alt="Planes de Membresía">
+  <main>
+    <div class="folleto">
+      <img src="folleto.png" alt="Folleto Membresías C&B Cerrajería Balbín">
     </div>
-  </div>
+  </main>
 
   <footer>
     <p>C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil</p>
     <p>Contacto: 2494 240906</p>
   </footer>
 
-  <script>
-    function buscarSocio() {
-      const id = document.getElementById("socioId").value.trim();
-      if (!id) {
-        alert("Por favor ingresá un número de socio.");
-        return;
-      }
-      window.location.href = `socio.html?id=${id}`;
-    }
-
-    function mostrarPlanes() {
-      const div = document.getElementById("imagenPlanes");
-      const btn = document.querySelector("#planes button");
-      if (div.style.display === "none") {
-        div.style.display = "block";
-        btn.textContent = "Ocultar Planes";
-      } else {
-        div.style.display = "none";
-        btn.textContent = "Mostrar Planes";
-      }
-    }
-  </script>
 </body>
 </html>
