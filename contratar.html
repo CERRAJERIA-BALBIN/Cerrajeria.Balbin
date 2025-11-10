@@ -87,6 +87,23 @@
       font-size: 0.9em;
       color: #aaa;
     }
+    a {
+      color: #e0b84e;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .terminos {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9em;
+      margin-top: 15px;
+    }
+    .terminos input {
+      width: auto;
+    }
   </style>
 </head>
 <body>
@@ -118,8 +135,16 @@
         <option value="">-- Elegí un plan --</option>
         <option value="Básico">Plan Básico - $11.999 / mes</option>
         <option value="Medio">Plan Medio - $14.999 / mes</option>
-        <option value="Premium">Plan Premium - $35.999 / mes</option>
+        <option value="Premium">Plan Premium - $25.999 / mes</option>
       </select>
+
+      <!-- ✅ Casilla de aceptación de Términos -->
+      <div class="terminos">
+        <input type="checkbox" id="aceptoTerminos" required>
+        <label for="aceptoTerminos">
+          Acepto los <a href="terminos.html" target="_blank">Términos y Condiciones de Uso</a>
+        </label>
+      </div>
 
       <button type="submit">Enviar solicitud</button>
     </form>
@@ -138,6 +163,12 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      const checkbox = document.getElementById("aceptoTerminos");
+      if (!checkbox.checked) {
+        alert("Debes aceptar los Términos y Condiciones para continuar.");
+        return;
+      }
 
       const data = {
         nombre: document.getElementById("nombre").value,
@@ -162,7 +193,6 @@
         mensaje.textContent = "✅ ¡Tu solicitud fue enviada correctamente! Nos pondremos en contacto pronto.";
         form.reset();
 
-        // Ocultar mensaje después de 6 segundos
         setTimeout(() => {
           mensaje.classList.remove("visible");
           mensaje.textContent = "";
@@ -178,3 +208,4 @@
 
 </body>
 </html>
+
