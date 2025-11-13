@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elegí tu forma de pago - C&B Cerrajería Balbín</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0b0c10, #1f2833);
+      color: #f1f1f1;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      padding: 15px;
+      background: rgba(0,0,0,0.5);
+      border-bottom: 2px solid #e0b84e;
+    }
+    header h1 {
+      color: #e0b84e;
+      font-size: 1.8em;
+      margin: 0;
+    }
+    main {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 25px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid #e0b84e;
+      border-radius: 15px;
+    }
+    .plan-titulo {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #e0b84e;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .plan-precio {
+      font-size: 1.2em;
+      margin-bottom: 25px;
+    }
+    .plan-precio span {
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+    .boton-pago {
+      display: block;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #e0b84e;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1em;
+      transition: 0.25s;
+    }
+    .boton-automatico {
+      background: #e0b84e;
+      color: #000;
+    }
+    .boton-automatico:hover {
+      background: #f5d76b;
+    }
+    .boton-manual {
+      background: transparent;
+      color: #e0b84e;
+    }
+    .boton-manual:hover {
+      background: rgba(224,184,78,0.12);
+    }
+    footer {
+      margin-top: 50px;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Elegí tu forma de pago</h1>
+  </header>
+
+  <main id="contenedorPlan">
+    <p>Gracias por elegir nuestro sistema de membresía.<br>
+    Ahora elegí tu forma de pago:</p>
+  </main>
+
+  <footer>
+    C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil · Tel: 2494 240906
+  </footer>
+
+  <script>
+    // URLs de pago
+    const links = {
+      Basico: {
+        automatico: "https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=f7cfb2cb092d4229b5490753539fb3d8",
+        manual: "https://mpago.la/1DJNHrR",
+        precio: "$11.999 / mes"
+      },
+      Medio: {
+        automatico: "https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=66af24985dec44429f1a53874e710342",
+        manual: "https://mpago.la/1rET2Vw",
+        precio: "$14.999 / mes"
+      },
+      Premium: {
+        automatico: "https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=ab7d73f305424236ba08e1a657578adc",
+        manual: "https://mpago.la/1wZb43p",
+        precio: "$25.999 / mes"
+      }
+    };
+
+    // Obtener plan desde la URL (por ejemplo pago.html?plan=Medio)
+    const params = new URLSearchParams(window.location.search);
+    const planElegido = params.get("plan");
+
+    const contenedor = document.getElementById("contenedorPlan");
+
+    if (planElegido && links[planElegido]) {
+      const plan = links[planElegido];
+      contenedor.innerHTML += `
+        <div class="plan-titulo">Plan ${planElegido}</div>
+        <div class="plan-precio"><span>${plan.precio}</span></div>
+        <a class="boton-pago boton-automatico" href="${plan.automatico}" target="_blank">Débito automático</a>
+        <a class="boton-pago boton-manual" href="${plan.manual}" target="_blank">Pago manual</a>
+      `;
+    } else {
+      contenedor.innerHTML += `<p style="color:#e0b84e; margin-top:20px;">⚠ No se pudo identificar el plan seleccionado. Volvé al formulario.</p>`;
+    }
+  </script>
+
+</body>
+</html>
