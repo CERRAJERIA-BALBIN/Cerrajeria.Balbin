@@ -104,88 +104,6 @@
     .terminos input {
       width: auto;
     }
-
-    /* --- SECCIÓN PLANES --- */
-    .planes-container {
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .titulo-seccion {
-      color: #e0b84e;
-      font-size: 1.8em;
-      margin-bottom: 10px;
-    }
-
-    .subtitulo {
-      color: #aaa;
-      font-size: 1em;
-      margin-bottom: 30px;
-    }
-
-    .plan-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid #e0b84e;
-      border-radius: 15px;
-      padding: 25px;
-      margin: 20px auto;
-      max-width: 360px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-
-    .plan-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 0 15px rgba(224, 184, 78, 0.4);
-    }
-
-    .plan-card h3 {
-      color: #e0b84e;
-      font-size: 1.4em;
-      border-bottom: 1px solid #e0b84e;
-      padding-bottom: 5px;
-      margin-bottom: 10px;
-    }
-
-    .precio {
-      color: #f1f1f1;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    .botones {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .btn-auto, .btn-manual {
-      text-decoration: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      text-align: center;
-      transition: 0.2s ease;
-    }
-
-    .btn-auto {
-      background: #e0b84e;
-      color: #0b0c10;
-    }
-
-    .btn-auto:hover {
-      background: #f5d87a;
-    }
-
-    .btn-manual {
-      border: 2px solid #e0b84e;
-      color: #e0b84e;
-    }
-
-    .btn-manual:hover {
-      background: #e0b84e;
-      color: #0b0c10;
-    }
   </style>
 </head>
 <body>
@@ -194,7 +112,6 @@
     <h1>Contratar Membresía</h1>
   </header>
 
-  <!-- 🧾 FORMULARIO -->
   <div class="formulario">
     <h2>Completá tus datos</h2>
     <form id="formMembresia">
@@ -216,11 +133,12 @@
       <label for="plan">Seleccioná tu plan</label>
       <select id="plan" required>
         <option value="">-- Elegí un plan --</option>
-        <option value="Básico">Plan Básico - $11.999 / mes</option>
+        <option value="Basico">Plan Básico - $11.999 / mes</option>
         <option value="Medio">Plan Medio - $14.999 / mes</option>
         <option value="Premium">Plan Premium - $25.999 / mes</option>
       </select>
 
+      <!-- Aceptación de Términos -->
       <div class="terminos">
         <input type="checkbox" id="aceptoTerminos" required>
         <label for="aceptoTerminos">
@@ -233,42 +151,6 @@
 
     <p class="mensaje" id="mensaje"></p>
   </div>
-
-  <!-- 💳 SECCIÓN PLANES Y PAGOS -->
-  <section class="planes-container">
-    <h2 class="titulo-seccion">💎 Elegí tu forma de pago</h2>
-    <p class="subtitulo">Podés pagar manualmente cada mes o activar débito automático.</p>
-
-    <!-- PLAN BÁSICO -->
-    <div class="plan-card">
-      <h3>PLAN BÁSICO</h3>
-      <p class="precio">$11.999 / mes</p>
-      <div class="botones">
-        <a href="LINK_AUTOMATICO_BASICO" target="_blank" class="btn-auto">💳 Débito automático</a>
-        <a href="LINK_MANUAL_BASICO" target="_blank" class="btn-manual">💵 Pago manual</a>
-      </div>
-    </div>
-
-    <!-- PLAN MEDIO -->
-    <div class="plan-card">
-      <h3>PLAN MEDIO</h3>
-      <p class="precio">$14.999 / mes</p>
-      <div class="botones">
-        <a href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=66af24985dec44429f1a53874e710342" target="_blank" class="btn-auto">💳 Débito automático</a>
-        <a href="LINK_MANUAL_MEDIO" target="_blank" class="btn-manual">💵 Pago manual</a>
-      </div>
-    </div>
-
-    <!-- PLAN PREMIUM -->
-    <div class="plan-card">
-      <h3>PLAN PREMIUM</h3>
-      <p class="precio">$25.999 / mes</p>
-      <div class="botones">
-        <a href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=ab7d73f305424236ba08e1a657578adc" target="_blank" class="btn-auto">💳 Débito automático</a>
-        <a href="LINK_MANUAL_PREMIUM" target="_blank" class="btn-manual">💵 Pago manual</a>
-      </div>
-    </div>
-  </section>
 
   <footer>
     <p>C&B Cerrajería Balbín · Av. Balbín 1377 · Tandil</p>
@@ -308,17 +190,16 @@
           body: JSON.stringify(data)
         });
 
-        mensaje.textContent = "✅ ¡Tu solicitud fue enviada correctamente! Nos pondremos en contacto pronto.";
-        form.reset();
-
+        mensaje.textContent = "✅ ¡Tu solicitud fue enviada correctamente! Redirigiendo al pago...";
+        
+        // Espera 1.5 segundos y pasa a la página de pago
         setTimeout(() => {
-          mensaje.classList.remove("visible");
-          mensaje.textContent = "";
-        }, 6000);
+          // le paso también el plan por la URL, por si después lo querés usar
+          window.location.href = "pago.html?plan=" + encodeURIComponent(data.plan);
+        }, 1500);
 
       } catch (error) {
         mensaje.textContent = "❌ Ocurrió un error al enviar. Intentalo nuevamente.";
-        mensaje.classList.add("visible");
         console.error(error);
       }
     });
